@@ -7,7 +7,7 @@ User = get_user_model()
 
 class ContactModel(models.Model):
     full_name = models.CharField(max_length=200)
-    email = models.EmailField(blank=True,  null=True)
+    email = models.EmailField(null=True)
     phone_number = models.CharField(max_length=200, blank=True, null=True)
     subject = models.CharField(max_length=200, blank=True, null=True)
     content = models.TextField(max_length=700)
