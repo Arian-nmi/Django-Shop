@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}ثبت نام{% endblock %}
+
+{% block content %}
+<main id="content" role="main">
+  <div class="container content-space-3 content-space-t-lg-4 content-space-b-lg-3">
+    <div class="flex-grow-1 mx-auto" style="max-width: 28rem;">
+      <div class="text-center mb-5 mb-md-7">
+        <h1 class="h2">فرم ثبت نام</h1>
+        <p>برای ثبت نام کافیست فرم زیر را پر نمایید</p>
+      </div>
+
+      <form method="post" class="js-validate needs-validation" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-3">
+          <label class="form-label" for="id_email">ایمیل شما</label>
+          <input type="email" class="form-control form-control-lg text-center" name="email" id="id_email"
+            placeholder="email@site.com" aria-label="email@site.com" required>
+          {% if form.email.errors %}
+            <div class="invalid-feedback d-block">{{ form.email.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="id_password1">رمز عبور</label>
+          <div class="input-group input-group-merge" data-hs-validation-validate-class>
+            <input type="password" class="js-toggle-password form-control form-control-lg text-center" name="password1"
+              id="id_password1" placeholder="رمز عبور" aria-label="رمز عبور" required>
+            <a class="input-group-append input-group-text" href="javascript:;">
+              <i class="bi-eye"></i>
+            </a>
+          </div>
+          {% if form.password1.errors %}
+            <div class="invalid-feedback d-block">{{ form.password1.errors|striptags }}</div>
+          {% endif %}
+          {% if form.password1.help_text %}
+            <small class="form-text text-muted d-block mt-1">{{ form.password1.help_text|safe }}</small>
+          {% endif %}
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label" for="id_password2">رمز عبور را تایید کنید</label>
+          <div class="input-group input-group-merge" data-hs-validation-validate-class>
+            <input type="password" class="js-toggle-password form-control form-control-lg text-center" name="password2"
+              id="id_password2" placeholder="تکرار رمز عبور" aria-label="تکرار رمز عبور" required>
+            <a class="input-group-append input-group-text" href="javascript:;">
+              <i class="bi-eye"></i>
+            </a>
+          </div>
+          {% if form.password2.errors %}
+            <div class="invalid-feedback d-block">{{ form.password2.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <div class="d-grid mb-3">
+          <button type="submit" class="btn btn-primary btn-lg">ثبت نام</button>
+        </div>
+
+        <div class="text-center">
+          <p>از قبل حساب کاربری دارید؟ <a class="link" href="{% url 'accounts:login' %}">از اینجا وارد شوید</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

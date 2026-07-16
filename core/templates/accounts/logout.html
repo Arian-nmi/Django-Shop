@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}خروج{% endblock %}
+
+{% block content %}
+<main id="content" role="main">
+  <div class="container content-space-3 content-space-t-lg-4 content-space-b-lg-3">
+    <div class="flex-grow-1 mx-auto" style="max-width: 28rem;">
+      <div class="text-center mb-5 mb-md-7">
+        <h1 class="h2">خروج از حساب</h1>
+        <p>آیا مطمئن هستید که می‌خواهید از حساب خود خارج شوید؟</p>
+      </div>
+
+      <form method="post">
+        {% csrf_token %}
+        <div class="d-grid gap-2">
+          <button type="submit" class="btn btn-danger btn-lg">بله، خروج کنید</button>
+          <a href="{% url 'website:index' %}" class="btn btn-secondary btn-lg">لغو</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}
