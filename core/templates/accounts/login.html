@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}ورود{% endblock %}
+
+{% block content %}
+<main id="content" role="main">
+  <div class="container content-space-3 content-space-t-lg-4 content-space-b-lg-3">
+    <div class="flex-grow-1 mx-auto" style="max-width: 28rem;">
+      <div class="text-center mb-5 mb-md-7">
+        <h1 class="h2">فرم ورود</h1>
+        <p>برای مدیریت حساب خود وارد شوید.</p>
+      </div>
+
+      <form method="post" class="js-validate needs-validation" novalidate>
+        {% csrf_token %}
+
+        <div class="mb-4">
+          <label class="form-label" for="id_username">نام کاربری یا ایمیل</label>
+          <input type="text" class="form-control form-control-lg text-center" name="username" id="id_username" placeholder="username or email" aria-label="username or email" required>
+          {% if form.username.errors %}
+            <div class="invalid-feedback d-block">{{ form.username.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        <div class="mb-4">
+          <div class="d-flex justify-content-between align-items-center">
+            <label class="form-label" for="id_password">کلمه عبور</label>
+          </div>
+
+          <div class="input-group input-group-merge" data-hs-validation-validate-class>
+            <input type="password" class="js-toggle-password form-control form-control-lg text-center" name="password" id="id_password" placeholder="کلمه عبور" aria-label="کلمه عبور" required>
+          </div>
+
+          {% if form.password.errors %}
+            <div class="invalid-feedback d-block">{{ form.password.errors|striptags }}</div>
+          {% endif %}
+        </div>
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger" role="alert">
+            {{ form.non_field_errors }}
+          </div>
+        {% endif %}
+
+        <div class="d-grid mb-3">
+          <a class="form-label-link" href="#">رمز عبور را فراموش کرده اید؟</a>
+          <button type="submit" class="btn btn-primary btn-lg">ورود</button>
+        </div>
+
+        <div class="text-center">
+          <p>حساب کاربری ندارید؟ <a class="link" href="{% url 'accounts:signup' %}">اینجا ثبت نام کنید</a></p>
+        </div>
+      </form>
+    </div>
+  </div>
+</main>
+{% endblock %}

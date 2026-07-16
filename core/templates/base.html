@@ -140,7 +140,15 @@
               </button>
               <!-- End Shopping Cart -->
 
-              <a class="btn btn-primary btn-transition" href="#">ورود</a>
+              {% if user.is_authenticated %}
+                <span class="text-muted me-2">{{ user.email }}</span>
+                <form method="post" action="{% url 'accounts:logout' %}" style="display: inline;">
+                  {% csrf_token %}
+                  <button type="submit" class="btn btn-danger btn-transition">خروج</button>
+                </form>
+              {% else %}
+                <a class="btn btn-primary btn-transition" href="{% url 'accounts:login' %}">ورود</a>
+              {% endif %}
             </li>
           </ul>
         </div>
@@ -1294,16 +1302,6 @@
       // INITIALIZATION OF SHOW ANIMATIONS
       // =======================================================
       new HSShowAnimation('.js-animation-link')
-
-
-      // INITIALIZATION OF BOOTSTRAP VALIDATION
-      // =======================================================
-      HSBsValidation.init('.js-validate', {
-        onSubmit: data => {
-          data.event.preventDefault()
-          alert('Submited')
-        }
-      })
 
 
       // INITIALIZATION OF BOOTSTRAP DROPDOWN
