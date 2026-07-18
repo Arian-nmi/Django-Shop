@@ -219,3 +219,7 @@ __marimo__/
 
 envs/**/.env
 /HTML-Shop-Template
+
+# Django uploaded media files
+core/media/*
+!core/media/.gitkeep

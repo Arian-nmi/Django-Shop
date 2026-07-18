@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}فروشگاه | فهرست محصولات{% endblock %}
+
+{% block content %}
+<main id="content" role="main">
+  <div class="bg-light">
+    <div class="container py-4">
+      <div class="row align-items-center">
+        <div class="col-sm">
+          <h4 class="mb-0">شبکه محصولات</h4>
+        </div>
+        <div class="col-sm-auto">
+          <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-0">
+              <li class="breadcrumb-item"><a href="{% url 'website:index' %}">خرید کنید</a></li>
+              <li class="breadcrumb-item active" aria-current="page">محصولات</li>
+            </ol>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="container content-space-t-1 content-space-b-lg-3">
+    <div class="row">
+      <div class="col-lg-3 mb-5">
+        <div class="navbar-expand-lg">
+          <div class="d-grid">
+            <button class="navbar-toggler btn btn-white mb-3" type="button" data-bs-toggle="collapse" data-bs-target="#navbarVerticalNavMenu" aria-expanded="false" aria-controls="navbarVerticalNavMenu">
+              <span class="d-flex justify-content-between align-items-center">
+                <span class="text-dark">فیلتر کنید</span>
+                <span class="navbar-toggler-default"><i class="bi-list"></i></span>
+                <span class="navbar-toggler-toggled"><i class="bi-x"></i></span>
+              </span>
+            </button>
+          </div>
+
+          <div id="navbarVerticalNavMenu" class="collapse navbar-collapse">
+            <form method="get">
+              <div class="border-bottom pb-4 mb-4">
+                <h5>جستجو</h5>
+                <div class="mb-3">
+                  <label class="form-label" for="q">عنوان</label>
+                  <input type="search" class="form-control" id="q" name="q" value="{{ request.GET.q }}" placeholder="جستجوی محصول">
+                </div>
+              </div>
+
+              <div class="border-bottom pb-4 mb-4">
+                <h5>دسته بندی</h5>
+                {% for category in categories %}
+                  <div class="form-check mb-2">
+                    <input class="form-check-input" type="radio" name="category_id" id="category-{{ category.id }}" value="{{ category.id }}" {% if request.GET.category_id == category.id|stringformat:'s' %}checked{% endif %}>
+                    <label class="form-check-label" for="category-{{ category.id }}">{{ category.title }}</label>
+                  </div>
+                {% empty %}
+                  <p class="text-muted">دسته‌ای موجود نیست.</p>
+                {% endfor %}
+              </div>
+
+              <div class="border-bottom pb-4 mb-4">
+                <h5>قیمت</h5>
+                <div class="mb-3">
+                  <label class="form-label" for="min_price">حداقل</label>
+                  <input type="number" class="form-control" id="min_price" name="min_price" value="{{ request.GET.min_price }}" placeholder="0">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label" for="max_price">حداکثر</label>
+                  <input type="number" class="form-control" id="max_price" name="max_price" value="{{ request.GET.max_price }}" placeholder="999999">
+                </div>
+              </div>
+
+              <div class="border-bottom pb-4 mb-4">
+                <h5>مرتب سازی</h5>
+                <select class="form-select" name="order_by">
+                  <option value="" {% if not request.GET.order_by %}selected{% endif %}>پیش‌فرض</option>
+                  <option value="price" {% if request.GET.order_by == 'price' %}selected{% endif %}>قیمت صعودی</option>
+                  <option value="-price" {% if request.GET.order_by == '-price' %}selected{% endif %}>قیمت نزولی</option>
+                  <option value="title" {% if request.GET.order_by == 'title' %}selected{% endif %}>عنوان</option>
+                </select>
+              </div>
+
+              <div class="d-grid">
+                <button type="submit" class="btn btn-primary">اعمال فیلتر</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-5">
+          <div>
+            <h2 class="mb-1">محصولات</h2>
+            <p class="text-muted mb-0">{{ total_items }} محصول یافت شد.</p>
+          </div>
+          <div>
+            <a class="btn btn-soft-primary" href="#">محصولات جدید</a>
+          </div>
+        </div>
+
+        <div class="row g-4">
+          {% for product in object_list %}
+            <div class="col-sm-6 col-lg-4">
+              <article class="card h-100">
+                <img class="card-img-top" src="{{ product.image.url }}" alt="{{ product.title }}">
+                <div class="card-body">
+                  <span class="badge bg-primary mb-2">{{ product.get_price }} تومان</span>
+                  <h3 class="h5"><a href="{% url 'shop:product-detail' slug=product.slug %}" class="text-dark">{{ product.title }}</a></h3>
+                  <p class="text-muted small">{{ product.brief_description|default:product.description|truncatechars:80 }}</p>
+                </div>
+                <div class="card-footer bg-transparent border-top d-flex justify-content-between align-items-center">
+                  <a class="btn btn-sm btn-outline-primary" href="{% url 'shop:product-detail' slug=product.slug %}">مشاهده</a>
+                  <button class="btn btn-sm btn-outline-secondary wishlist-button" data-product-id="{{ product.id }}">
+                    {% if product.id in wishlist_items %}حذف از علاقه‌مندی{% else %}افزودن به علاقه‌مندی{% endif %}
+                  </button>
+                </div>
+              </article>
+            </div>
+          {% empty %}
+            <div class="col-12">
+              <div class="alert alert-warning">هیچ محصولی پیدا نشد.</div>
+            </div>
+          {% endfor %}
+        </div>
+
+        <div class="mt-5">
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center">
+              {% if page_obj.has_previous %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category_id %}&category_id={{ request.GET.category_id }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}">قبلی</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">قبلی</span></li>
+              {% endif %}
+
+              {% for num in page_obj.paginator.page_range %}
+                <li class="page-item {% if num == page_obj.number %}active{% endif %}"><a class="page-link" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category_id %}&category_id={{ request.GET.category_id }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}">{{ num }}</a></li>
+              {% endfor %}
+
+              {% if page_obj.has_next %}
+                <li class="page-item">
+                  <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.category_id %}&category_id={{ request.GET.category_id }}{% endif %}{% if request.GET.min_price %}&min_price={{ request.GET.min_price }}{% endif %}{% if request.GET.max_price %}&max_price={{ request.GET.max_price }}{% endif %}{% if request.GET.order_by %}&order_by={{ request.GET.order_by }}{% endif %}">بعدی</a>
+                </li>
+              {% else %}
+                <li class="page-item disabled"><span class="page-link">بعدی</span></li>
+              {% endif %}
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
+{% endblock %}
