@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% load shop_tags %}
+
+{% block title %}{{ product.title }}{% endblock %}
+
+{% block content %}
+<div class="row mt-5">
+  <div class="col-12">
+    {% show_similar_products product %}
+  </div>
+</div>
+<main id="content" role="main">
+  <div class="container content-space-t-1 content-space-b-lg-3">
+    <div class="row">
+      <div class="col-md-7 mb-7 mb-md-0">
+        <div class="pe-md-4">
+          <div class="card-pinned">
+            <div class="js-swiper-shop-product swiper">
+              <div class="swiper-wrapper">
+                {% if product.product_images.all %}
+                  {% for img in product.product_images.all %}
+                    <div class="swiper-slide">
+                      <div class="card card-bordered shadow-none">
+                        <img class="card-img" src="{{ img.file.url }}" alt="{{ product.title }}">
+                      </div>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="swiper-slide">
+                    <div class="card card-bordered shadow-none">
+                      <img class="card-img" src="{{ product.image.url }}" alt="{{ product.title }}">
+                    </div>
+                  </div>
+                {% endif %}
+              </div>
+
+              <div class="js-swiper-shop-product-button-next swiper-button-next"></div>
+              <div class="js-swiper-shop-product-button-prev swiper-button-prev"></div>
+            </div>
+
+            <div class="position-absolute bottom-0 end-0 start-0 zi-1 p-4">
+              <div class="js-swiper-shop-product-thumb swiper" style="max-width: 15rem;">
+                <div class="swiper-wrapper">
+                  {% if product.product_images.all %}
+                    {% for img in product.product_images.all %}
+                      <div class="swiper-slide">
+                        <a class="avatar avatar-circle" href="javascript:;"><img class="avatar-img" src="{{ img.file.url }}" alt="{{ product.title }}"></a>
+                      </div>
+                    {% endfor %}
+                  {% else %}
+                    <div class="swiper-slide">
+                      <a class="avatar avatar-circle" href="javascript:;"><img class="avatar-img" src="{{ product.image.url }}" alt="{{ product.title }}"></a>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-5">
+        <a class="d-flex gap-1 mb-4" href="#reviewSection">
+          <img src="{% static 'assets/svg/illustrations/star.svg' %}" alt="Review rating" width="16">
+          <span class="ms-1">{{ product.avg_rate|default:0 }} امتیاز</span>
+        </a>
+
+        <div class="mb-5">
+          <h1 class="h2">{{ product.title }}</h1>
+          <p>{{ product.brief_description|default:product.description }}</p>
+        </div>
+
+        <div class="mb-5">
+          <span class="d-block mb-2">قیمت کل:</span>
+          <div class="d-flex align-items-center">
+            <h3 class="mb-0">{{ product.get_price }} تومان</h3>
+            {% if product.is_discounted %}
+              <span class="ms-2"><del>{{ product.price }}</del></span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="mb-3">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-primary btn-lg">اضافه به سبد خرید</button>
+            <button type="button" id="wishlist-button" class="wishlist-button btn btn-outline-secondary btn-lg" data-product-id="{{ product.id }}">
+              {% if is_wished %}حذف از علاقه‌مندی{% else %}افزودن به علاقه‌مندی{% endif %}
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Additional content like description, specs, reviews placeholder -->
+    <div class="row mt-5">
+      <div class="col-12">
+        <h4>توضیحات</h4>
+        <p>{{ product.description|linebreaks }}</p>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function(){
+    const csrftoken = '{{ csrf_token }}';
+
+    document.querySelectorAll('.wishlist-button').forEach(function(btn){
+      btn.addEventListener('click', async function(e){
+        e.preventDefault();
+        const productId = this.dataset.productId;
+
+        const formData = new FormData();
+        formData.append('product_id', productId);
+
+        try {
+          const response = await fetch('{% url "shop:add-or-remove-wishlist" %}', {
+            method: 'POST',
+            headers: {
+              'X-CSRFToken': csrftoken
+            },
+            body: formData,
+            credentials: 'same-origin'
+          });
+
+          const data = await response.json();
+
+          if (!response.ok) {
+            alert(data.message || 'خطا در درخواست');
+            return;
+          }
+
+          this.textContent = data.is_wished ? 'حذف از علاقه‌مندی' : 'افزودن به علاقه‌مندی';
+        } catch (err) {
+          console.error(err);
+          alert('خطا در اتصال به سرور');
+        }
+      });
+    });
+
+    var sliderThumbs = new Swiper('.js-swiper-shop-product-thumb', {
+      slidesPerView: 3,
+      watchSlidesVisibility: true,
+      watchSlidesProgress: true,
+      history: false,
+    });
+
+    var swiper = new Swiper('.js-swiper-shop-product', {
+      effect: 'fade',
+      autoplay: true,
+      loop: true,
+      navigation: {
+        nextEl: '.js-swiper-shop-product-button-next',
+        prevEl: '.js-swiper-shop-product-button-prev',
+      },
+      thumbs: {
+        swiper: sliderThumbs
+      }
+    });
+  });
+</script>
+
+{% endblock %}
