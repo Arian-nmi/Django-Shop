@@ -174,7 +174,7 @@
                         {
                             method: "POST",
                             headers: {
-                                "X-CSRFToken": csrftoken,
+                                "X-CSRFToken": csrfToken,
                             },
                             body: formData,
                             credentials: "same-origin",
@@ -188,11 +188,7 @@
                         return;
                     }
 
-                    alert(
-                        "محصول به سبد خرید اضافه شد. " +
-                        data.total_quantity +
-                        " کالا در سبد خرید دارید."
-                    );
+                    document.getElementById('total-cart-item-count').textContent = data.total_quantity;
 
                 } catch (error) {
                     console.error("Cart error:", error);
