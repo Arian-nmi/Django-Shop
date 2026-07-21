@@ -86,7 +86,7 @@
 
         <div class="mb-3">
           <div class="d-flex gap-2">
-            <button type="button" class="btn btn-primary btn-lg">اضافه به سبد خرید</button>
+            <button type="button" id="add-to-cart-button" class="btn btn-primary btn-lg" data-product-id="{{ product.id }}">اضافه به سبد خرید</button>
             <button type="button" id="wishlist-button" class="wishlist-button btn btn-outline-secondary btn-lg" data-product-id="{{ product.id }}">
               {% if is_wished %}حذف از علاقه‌مندی{% else %}افزودن به علاقه‌مندی{% endif %}
             </button>
@@ -108,62 +108,125 @@
 </main>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function(){
-    const csrftoken = '{{ csrf_token }}';
+    document.addEventListener("DOMContentLoaded", function () {
+        const csrfToken = "{{ csrf_token }}";
 
-    document.querySelectorAll('.wishlist-button').forEach(function(btn){
-      btn.addEventListener('click', async function(e){
-        e.preventDefault();
-        const productId = this.dataset.productId;
+        // -------------------------
+        // Wishlist
+        // -------------------------
+        document.querySelectorAll(".wishlist-button").forEach(function (button) {
+            button.addEventListener("click", async function (event) {
+                event.preventDefault();
 
-        const formData = new FormData();
-        formData.append('product_id', productId);
+                const productId = this.dataset.productId;
 
-        try {
-          const response = await fetch('{% url "shop:add-or-remove-wishlist" %}', {
-            method: 'POST',
-            headers: {
-              'X-CSRFToken': csrftoken
-            },
-            body: formData,
-            credentials: 'same-origin'
-          });
+                const formData = new FormData();
+                formData.append("product_id", productId);
 
-          const data = await response.json();
+                try {
+                    const response = await fetch(
+                        '{% url "shop:add-or-remove-wishlist" %}',
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": csrfToken,
+                            },
+                            body: formData,
+                            credentials: "same-origin",
+                        }
+                    );
 
-          if (!response.ok) {
-            alert(data.message || 'خطا در درخواست');
-            return;
-          }
+                    const data = await response.json();
 
-          this.textContent = data.is_wished ? 'حذف از علاقه‌مندی' : 'افزودن به علاقه‌مندی';
-        } catch (err) {
-          console.error(err);
-          alert('خطا در اتصال به سرور');
+                    if (!response.ok) {
+                        alert(data.message || "خطا در درخواست");
+                        return;
+                    }
+
+                    this.textContent = data.is_wished
+                        ? "حذف از علاقه‌مندی"
+                        : "افزودن به علاقه‌مندی";
+
+                } catch (error) {
+                    console.error("Wishlist error:", error);
+                    alert("خطا در اتصال به سرور");
+                }
+            });
+        });
+
+        // -------------------------
+        // Add product to cart
+        // -------------------------
+        const addToCartButton = document.getElementById("add-to-cart-button");
+
+        if (addToCartButton) {
+            addToCartButton.addEventListener("click", async function (event) {
+                event.preventDefault();
+
+                const productId = this.dataset.productId;
+
+                const formData = new FormData();
+                formData.append("product_id", productId);
+
+                try {
+                    const response = await fetch(
+                        '{% url "cart:session-add-product" %}',
+                        {
+                            method: "POST",
+                            headers: {
+                                "X-CSRFToken": csrftoken,
+                            },
+                            body: formData,
+                            credentials: "same-origin",
+                        }
+                    );
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        alert(data.message || "خطا در افزودن محصول به سبد خرید");
+                        return;
+                    }
+
+                    alert(
+                        "محصول به سبد خرید اضافه شد. " +
+                        data.total_quantity +
+                        " کالا در سبد خرید دارید."
+                    );
+
+                } catch (error) {
+                    console.error("Cart error:", error);
+                    alert("خطا در اتصال به سرور");
+                }
+            });
         }
-      });
-    });
 
-    var sliderThumbs = new Swiper('.js-swiper-shop-product-thumb', {
-      slidesPerView: 3,
-      watchSlidesVisibility: true,
-      watchSlidesProgress: true,
-      history: false,
-    });
+        // -------------------------
+        // Product image slider
+        // -------------------------
+        const sliderThumbs = new Swiper(
+            ".js-swiper-shop-product-thumb",
+            {
+                slidesPerView: 3,
+                watchSlidesVisibility: true,
+                watchSlidesProgress: true,
+                history: false,
+            }
+        );
 
-    var swiper = new Swiper('.js-swiper-shop-product', {
-      effect: 'fade',
-      autoplay: true,
-      loop: true,
-      navigation: {
-        nextEl: '.js-swiper-shop-product-button-next',
-        prevEl: '.js-swiper-shop-product-button-prev',
-      },
-      thumbs: {
-        swiper: sliderThumbs
-      }
+        new Swiper(".js-swiper-shop-product", {
+            effect: "fade",
+            autoplay: true,
+            loop: true,
+            navigation: {
+                nextEl: ".js-swiper-shop-product-button-next",
+                prevEl: ".js-swiper-shop-product-button-prev",
+            },
+            thumbs: {
+                swiper: sliderThumbs,
+            },
+        });
     });
-  });
 </script>
 
 {% endblock %}

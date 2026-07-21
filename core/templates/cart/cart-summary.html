@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container content-space-3 content-space-lg-5">
+  <div class="row">
+    <div class="col-lg-8 mb-7 mb-lg-0">
+      <div class="d-flex justify-content-between align-items-end border-bottom pb-3 mb-7">
+        <h1 class="h3 mb-0">سبد خرید</h1>
+        <span>{{ total_quantity }} مورد</span>
+      </div>
+
+      <ul class="list-group list-group-flush list-group-no-gutters mb-5">
+        {% for item in cart_items %}
+          <li class="list-group-item">
+            <div class="d-flex">
+              <div class="flex-shrink-0">
+                <img class="avatar avatar-xl avatar-4x3" src="{{ item.product_obj.image.url }}" alt="{{ item.product_obj.title }}">
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <div class="row">
+                  <div class="col-sm-6 mb-3 mb-sm-0">
+                    <h5><a class="text-dark" href="{% url 'shop:product-detail' slug=item.product_obj.slug %}">{{ item.product_obj.title }}</a></h5>
+                    <div class="text-body">
+                      <span class="small">قیمت هر واحد:</span>
+                      <span class="fw-semibold small">{{ item.product_obj.get_price }} تومان</span>
+                    </div>
+                  </div>
+
+                  <div class="col-sm-4">
+                    <div class="d-flex align-items-center">
+                      <span class="small ms-2">تعداد:</span>
+                      <select class="form-select form-select-sm" style="width:auto" data-product-id="{{ item.product_id }}" onchange="changeProductQuantity('{{ item.product_id }}', this.value)">
+                        {% with ''|center:item.product_obj.stock as stock_range %}
+                          {% for _ in stock_range %}
+                            <option value="{{ forloop.counter }}" {% if forloop.counter == item.quantity %}selected{% endif %}>{{ forloop.counter }}</option>
+                          {% endfor %}
+                        {% endwith %}
+                      </select>
+                    </div>
+                    <button class="btn btn-sm btn-icon text-danger border-0 mt-2" onclick="removeProduct('{{ item.product_id }}')">
+                      <i class="bi-trash ms-1"></i> حذف
+                    </button>
+                  </div>
+
+                  <div class="col-4 col-sm-2 d-none d-sm-inline-block text-end">
+                    <span class="h5 d-block mb-1">{{ item.total_price }} تومان</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </li>
+        {% empty %}
+          <li class="list-group-item text-center text-muted">سبد خریدت خالیه.</li>
+        {% endfor %}
+      </ul>
+
+      <a class="link" href="{% url 'shop:product-grid' %}">به خرید ادامه دهید <i class="bi-chevron-left small ms-1"></i></a>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="ps-lg-4">
+        <div class="card card-sm shadow-sm mb-4">
+          <div class="card-body">
+            <div class="border-bottom pb-4 mb-4">
+              <h3 class="card-header-title">خلاصه هزینه</h3>
+            </div>
+            <dl class="row">
+              <dt class="col-sm-6">جمع کل</dt>
+              <dd class="col-sm-12 text-sm-end mb-0">{{ total_payment_price }} تومان</dd>
+            </dl>
+            <div class="d-grid mt-4">
+              <a class="btn btn-primary btn-lg disabled" href="#" aria-disabled="true" title="اپ order هنوز ساخته نشده">ثبت سفارش</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  const csrftoken = '{{ csrf_token }}';
+
+  function postCartAction(url, data) {
+    const formData = new FormData();
+    Object.entries(data).forEach(([key, value]) => formData.append(key, value));
+    fetch(url, {
+      method: 'POST',
+      headers: { 'X-CSRFToken': csrftoken },
+      body: formData,
+      credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(() => window.location.reload())
+    .catch(err => { console.error(err); alert('خطا در اتصال به سرور'); });
+  }
+
+  function changeProductQuantity(productId, quantity) {
+    postCartAction("{% url 'cart:session-update-product-quantity' %}", { product_id: productId, quantity: quantity });
+  }
+
+  function removeProduct(productId) {
+    postCartAction("{% url 'cart:session-remove-product' %}", { product_id: productId });
+  }
+</script>
+{% endblock %}
