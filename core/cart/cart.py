@@ -5,16 +5,27 @@ from .models import CartModel, CartItemModel
 class CartSession:
     def __init__(self, session):
         self.session = session
-        self._cart = self.session.setdefault("cart", {"item": []})
+        self._cart = self.session.setdefault("cart", {"items": []})
 
-    def upgrade_product_quantity(self, product_id, quantity):
-        for item in self._cart["items"]:
-            if product_id == item["product_id"]:
-                item["quantity"] = int(quantity)
-                break
-        else:
+        if "items" not in self._cart:
+            self._cart["items"] = self._cart.pop("item", [])
+            self.session.modified = True
+
+    def update_product_quantity(self, product_id, quantity):
+        try:
+            quantity = int(quantity)
+        except (TypeError, ValueError):
             return
-        self.save()
+
+        if quantity < 1:
+            self.remove_product(product_id)
+            return
+
+        for item in self._cart["items"]:
+            if item["product_id"] == str(product_id):
+                item["quantity"] = quantity
+                self.save()
+                return
 
     def remove_product(self, product_id):
         for item in self._cart["items"]:
@@ -41,26 +52,26 @@ class CartSession:
 
     def get_cart_dict(self):
         return self._cart
-    
+
     def get_cart_items(self):
         for item in self._cart["items"]:
             product_obj = ProductModel.objects.get(id=item["product_id"], status=ProductStatusType.publish.value)
             item.update({"product_obj": product_obj, "total_price": item["quantity"] * product_obj.get_price()})
         return self._cart["items"]
-    
+
     def get_total_payment_amount(self):
         return sum(item["total_price"] for item in self._cart["items"])
-    
+
     def get_total_quantity(self):
         return sum(item["quantity"] for item in self._cart["items"])
-    
+
     def save(self):
         self.session.modified = True
 
     def sync_cart_items_from_db(self,user):
-        cart,created = CartModel.objects.get_or_create(user=user)
+        cart, created = CartModel.objects.get_or_create(user=user)
         cart_items = CartItemModel.objects.filter(cart=cart)
-        
+
         for cart_item in cart_items:
             for item in self._cart["items"]:
                 if str(cart_item.product.id) == item["product_id"]:
@@ -75,12 +86,13 @@ class CartSession:
 
     def merge_session_cart_in_db(self,user):
         cart,created = CartModel.objects.get_or_create(user=user)
-        
+
         for item in  self._cart["items"]:
             product_obj = ProductModel.objects.get(id=item["product_id"], status=ProductStatusType.publish.value)
-            
+
             cart_item ,created = CartItemModel.objects.get_or_create(cart=cart,product=product_obj)
             cart_item.quantity = item["quantity"]
             cart_item.save()
+
         session_product_ids = [item["product_id"] for item in  self._cart["items"]]
         CartItemModel.objects.filter(cart=cart).exclude(product__id__in=session_product_ids).delete()
