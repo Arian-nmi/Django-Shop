@@ -36,6 +36,13 @@ class CouponModel(models.Model):
 class OrderModel(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name="orders")
     coupon = models.ForeignKey(CouponModel, on_delete=models.PROTECT, null=True, blank=True)
+    payment = models.OneToOneField(
+        "payment.PaymentModel",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="order",
+    )
 
     address = models.CharField(max_length=250)
     state = models.CharField(max_length=50)
