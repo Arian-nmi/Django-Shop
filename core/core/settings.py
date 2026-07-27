@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'shop.apps.ShopConfig',
     'cart.apps.CartConfig',
     'order.apps.OrderConfig',
+    'payment.apps.PaymentConfig',
 ]
 
 MIDDLEWARE = [
@@ -92,3 +93,4 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+ZARINPAL_MERCHANT_ID = config("ZARINPAL_MERCHANT_ID", default="4ced0a1e-4ad8-4309-9668-3ea3ae8e8897")

@@ -4,3 +4,4 @@ python-decouple
 psycopg
 psycopg-binary
 faker
+requests
