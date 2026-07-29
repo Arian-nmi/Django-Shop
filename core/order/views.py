@@ -3,9 +3,11 @@ from decimal import Decimal, ROUND_HALF_UP
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
+from django.http import JsonResponse
+from django.utils import timezone
 from django.shortcuts import redirect
 from django.urls import reverse
-from django.views.generic import FormView, View
+from django.views.generic import FormView, View, TemplateView
 
 from cart.models import CartModel
 from payment.models import PaymentModel
@@ -267,3 +269,10 @@ class ValidateCouponView(LoginRequiredMixin, HasCustomerAccessPermission, View):
                 status=status_code
               )
 
+
+class OrderCompletedView(TemplateView):
+    template_name = "order/completed.html"
+
+
+class OrderFailedView(TemplateView):
+    template_name = "order/failed.html"
