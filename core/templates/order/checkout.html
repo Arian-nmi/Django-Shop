@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}تسویه حساب{% endblock %}
+
+{% block content %}
+<div class="container content-space-1 content-space-lg-2">
+  <div class="row">
+    <div class="col-lg-8 mb-7 mb-lg-0">
+      <h4 class="mb-3">انتخاب آدرس</h4>
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="d-grid gap-2">
+          {% for address in user.addresses.all %}
+            <div class="form-check">
+              <input type="radio" class="form-check-input" name="address_id" id="address-{{ address.id }}" value="{{ address.id }}" {% if forloop.first %}checked{% endif %} required>
+              <label class="form-check-label" for="address-{{ address.id }}">{{ address.state }}، {{ address.city }}، {{ address.address }}</label>
+            </div>
+          {% empty %}
+            <p class="text-danger">هنوز آدرسی ثبت نکردی — از پنل ادمین یکی اضافه کن.</p>
+          {% endfor %}
+        </div>
+
+        {% if form.address_id.errors %}
+          <div class="text-danger small mt-2">{{ form.address_id.errors|striptags }}</div>
+        {% endif %}
+
+        <hr class="my-4">
+
+        <div class="input-group border-bottom pb-4 mb-3">
+          <input type="text" name="coupon" class="form-control text-center" placeholder="کد تخفیف" id="id_coupon">
+          <button type="button" id="check-coupon-btn" class="btn btn-outline-primary">بررسی</button>
+        </div>
+        {% if form.coupon.errors %}
+          <div class="text-danger small">{{ form.coupon.errors|striptags }}</div>
+        {% endif %}
+        <div id="coupon-message" class="small mb-3"></div>
+
+        <div class="d-grid gap-3 mb-4">
+          <dl class="row">
+            <dt class="col-sm-6">جمع کل</dt>
+            <dd class="col-sm-6 text-sm-end mb-0" id="checkout-total-price">{{ cart.get_total_payment_amount }}</dd>
+          </dl>
+        </div>
+
+        <div class="d-grid">
+          <button type="submit" class="btn btn-primary btn-lg">ثبت نهایی و پرداخت</button>
+        </div>
+
+        <div class="text-center mt-3">
+          <a class="link" href="{% url 'cart:cart-summary' %}"><i class="bi-chevron-left small ms-1"></i> بازگشت به سبد خرید</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.getElementById('check-coupon-btn').addEventListener('click', async function () {
+    const code = document.getElementById('id_coupon').value;
+    const formData = new FormData();
+    formData.append('code', code);
+    const response = await fetch("{% url 'order:validate-coupon' %}", {
+      method: 'POST',
+      headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+      body: formData,
+      credentials: 'same-origin'
+    });
+    const data = await response.json();
+    document.getElementById('coupon-message').textContent = data.message;
+    if (response.ok) {
+      document.getElementById('checkout-total-price').textContent = data.total_price + ' تومان';
+    }
+  });
+</script>
+{% endblock %}
