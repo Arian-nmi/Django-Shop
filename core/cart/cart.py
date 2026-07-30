@@ -1,5 +1,6 @@
 from shop.models import ProductModel, ProductStatusType
 from .models import CartModel, CartItemModel
+from decimal import Decimal
 
 
 class CartSession:
@@ -54,16 +55,75 @@ class CartSession:
         return self._cart
 
     def get_cart_items(self):
-        for item in self._cart["items"]:
-            product_obj = ProductModel.objects.get(id=item["product_id"], status=ProductStatusType.publish.value)
-            item.update({"product_obj": product_obj, "total_price": item["quantity"] * product_obj.get_price()})
-        return self._cart["items"]
+        session_items = self._cart.get("items", [])
+
+        product_ids = [
+            item.get("product_id")
+            for item in session_items
+            if item.get("product_id")
+        ]
+
+        products = {
+            str(product.id): product
+            for product in ProductModel.objects.filter(
+                id__in=product_ids,
+                status=ProductStatusType.publish.value,
+            )
+        }
+
+        cart_items = []
+        valid_session_items = []
+
+        for session_item in session_items:
+            product_id = str(session_item.get("product_id", ""))
+            product = products.get(product_id)
+
+            try:
+                quantity = int(session_item.get("quantity", 0))
+            except (TypeError, ValueError):
+                continue
+
+            if not product or quantity < 1:
+                continue
+
+            valid_session_items.append(
+                {
+                    "product_id": product_id,
+                    "quantity": quantity,
+                }
+            )
+
+            cart_items.append(
+                {
+                    "product_id": product_id,
+                    "quantity": quantity,
+                    "product_obj": product,
+                    "total_price": product.get_price() * quantity,
+                }
+            )
+
+        if valid_session_items != session_items:
+            self._cart["items"] = valid_session_items
+            self.save()
+
+        return cart_items
+
 
     def get_total_payment_amount(self):
-        return sum(item["total_price"] for item in self._cart["items"])
+        return sum(
+            (
+                item["total_price"]
+                for item in self.get_cart_items()
+            ),
+            Decimal("0"),
+        )
+
 
     def get_total_quantity(self):
-        return sum(item["quantity"] for item in self._cart["items"])
+        return sum(
+            item.get("quantity", 0)
+            for item in self._cart.get("items", [])
+        )
 
     def save(self):
         self.session.modified = True
