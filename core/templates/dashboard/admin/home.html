@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}
+    داشبورد مدیر
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>داشبورد مدیر</h1>
+
+    <p>
+        خوش آمدی {{ request.user.email }}
+    </p>
+
+    <a
+        href="/admin/"
+        class="btn btn-primary"
+    >
+        ورود به Django Admin
+    </a>
+</div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}ویرایش آدرس{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>ویرایش آدرس</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.as_p }}
+
+        <button
+            type="submit"
+            class="btn btn-primary"
+        >
+            ذخیره تغییرات
+        </button>
+
+        <a
+            href="{% url 'dashboard:customer:address-list' %}"
+            class="btn btn-secondary"
+        >
+            بازگشت
+        </a>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}
+    داشبورد مشتری
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1>داشبورد مشتری</h1>
+
+    <p>
+        خوش آمدی {{ request.user.email }}
+    </p>
+</div>
+{% endblock %}

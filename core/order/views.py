@@ -271,7 +271,7 @@ class ValidateCouponView(LoginRequiredMixin, HasCustomerAccessPermission, View):
 
 
 class OrderCompletedView(TemplateView):
-    template_name = "order/completed.html"
+    template_name = "order/compeleted.html"
 
 
 class OrderFailedView(TemplateView):
