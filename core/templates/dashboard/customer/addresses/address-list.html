@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}آدرس‌های من{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="d-flex justify-content-between mb-4">
+        <h1>آدرس‌های من</h1>
+
+        <a
+            href="{% url 'dashboard:customer:address-create' %}"
+            class="btn btn-primary"
+        >
+            افزودن آدرس
+        </a>
+    </div>
+
+    {% for address in addresses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5>
+                    {{ address.state }}، {{ address.city }}
+                </h5>
+
+                <p>{{ address.address }}</p>
+
+                <p>
+                    کد پستی: {{ address.zip_code }}
+                </p>
+
+                <a
+                    href="{% url 'dashboard:customer:address-edit' address.id %}"
+                    class="btn btn-outline-primary"
+                >
+                    ویرایش
+                </a>
+
+                <a
+                    href="{% url 'dashboard:customer:address-delete' address.id %}"
+                    class="btn btn-outline-danger"
+                >
+                    حذف
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="alert alert-info">
+            هنوز آدرسی ثبت نکرده‌اید.
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
