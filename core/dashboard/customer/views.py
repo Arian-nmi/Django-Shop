@@ -1,6 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
+from django.contrib import messages
+from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from django.views.generic import (
     CreateView,
     DeleteView,
@@ -11,6 +14,7 @@ from django.views.generic import (
 )
 
 from order.models import UserAddressModel, OrderModel, OrderStatusType
+from shop.models import WishlistProductModel
 from dashboard.permissions import CustomerDashboardRequiredMixin
 from .forms import UserAddressForm
 
@@ -202,4 +206,80 @@ class CustomerOrderInvoiceView(
                 )
             .select_related("coupon", "payment")
             .prefetch_related("order_items__product")
+        )
+
+
+class CustomerWishlistListView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    ListView,
+):
+    template_name = "dashboard/customer/wishlists/wishlist-list.html"
+    context_object_name = "wishlist_items"
+    paginate_by = 12
+
+    ALLOWED_ORDERINGS = {
+        "newest": "-id",
+        "oldest": "id",
+        "price_asc": "product__price",
+        "price_desc": "-product__price",
+    }
+
+    def get_queryset(self):
+        queryset = (
+            WishlistProductModel.objects
+            .filter(user=self.request.user)
+            .select_related("product")
+        )
+
+        search_query = self.request.GET.get(
+            "q",
+            "",
+        ).strip()
+
+        if search_query:
+            queryset = queryset.filter(
+                product__title__icontains=search_query
+            )
+
+        order_by = self.request.GET.get("order_by")
+
+        if order_by in self.ALLOWED_ORDERINGS:
+            queryset = queryset.order_by(
+                self.ALLOWED_ORDERINGS[order_by]
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["total_items"] = context["paginator"].count
+
+        return context
+
+
+class CustomerWishlistDeleteView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    View,
+):
+    http_method_names = ["post"]
+
+    def post(self, request, *args, **kwargs):
+        wishlist_item = get_object_or_404(
+            WishlistProductModel,
+            pk=kwargs["pk"],
+            user=request.user,
+        )
+
+        wishlist_item.delete()
+
+        messages.success(
+            request,
+            "محصول از لیست علاقه‌مندی‌ها حذف شد.",
+        )
+
+        return redirect(
+            "dashboard:customer:wishlist-list"
         )

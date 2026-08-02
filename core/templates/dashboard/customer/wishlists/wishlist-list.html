@@ -1,0 +1,212 @@
+{% extends "base.html" %}
+
+{% block title %}
+    علاقه‌مندی‌های من
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                علاقه‌مندی‌های من
+            </h1>
+
+            <p class="text-muted mb-0">
+                {{ total_items }} محصول در لیست علاقه‌مندی دارید.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'shop:product-grid' %}"
+            class="btn btn-primary"
+        >
+            مشاهده محصولات
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+
+                <div class="col-md-6">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        value="{{ request.GET.q }}"
+                        placeholder="جستجوی محصول در علاقه‌مندی‌ها"
+                    >
+                </div>
+
+                <div class="col-md-4">
+                    <select
+                        name="order_by"
+                        class="form-select"
+                    >
+                        <option value="">
+                            مرتب‌سازی پیش‌فرض
+                        </option>
+
+                        <option
+                            value="newest"
+                            {% if request.GET.order_by == "newest" %}
+                                selected
+                            {% endif %}
+                        >
+                            جدیدترین
+                        </option>
+
+                        <option
+                            value="oldest"
+                            {% if request.GET.order_by == "oldest" %}
+                                selected
+                            {% endif %}
+                        >
+                            قدیمی‌ترین
+                        </option>
+
+                        <option
+                            value="price_asc"
+                            {% if request.GET.order_by == "price_asc" %}
+                                selected
+                            {% endif %}
+                        >
+                            کمترین قیمت
+                        </option>
+
+                        <option
+                            value="price_desc"
+                            {% if request.GET.order_by == "price_desc" %}
+                                selected
+                            {% endif %}
+                        >
+                            بیشترین قیمت
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary w-100"
+                    >
+                        جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        {% for wishlist_item in wishlist_items %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100">
+
+                    <a
+                        href="{% url 'shop:product-detail' wishlist_item.product.slug %}"
+                    >
+                        <img
+                            src="{{ wishlist_item.product.image.url }}"
+                            class="card-img-top"
+                            alt="{{ wishlist_item.product.title }}"
+                        >
+                    </a>
+
+                    <div class="card-body">
+                        <h2 class="h5">
+                            <a
+                                class="text-dark"
+                                href="{% url 'shop:product-detail' wishlist_item.product.slug %}"
+                            >
+                                {{ wishlist_item.product.title }}
+                            </a>
+                        </h2>
+
+                        <p class="text-primary mb-0">
+                            {{ wishlist_item.product.get_price }} تومان
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-white border-0">
+                        <div class="d-flex gap-2">
+
+                            <a
+                                href="{% url 'shop:product-detail' wishlist_item.product.slug %}"
+                                class="btn btn-outline-primary w-100"
+                            >
+                                مشاهده محصول
+                            </a>
+
+                            <form
+                                method="post"
+                                action="{% url 'dashboard:customer:wishlist-delete' wishlist_item.id %}"
+                            >
+                                {% csrf_token %}
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-outline-danger"
+                                    title="حذف از علاقه‌مندی‌ها"
+                                >
+                                    حذف
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        {% empty %}
+            <div class="col-12">
+                <div class="alert alert-info text-center">
+                    هنوز محصولی به علاقه‌مندی‌ها اضافه نکرده‌اید.
+
+                    <a
+                        href="{% url 'shop:product-grid' %}"
+                        class="alert-link"
+                    >
+                        مشاهده محصولات
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-5">
+            <ul class="pagination justify-content-center">
+
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&order_by={{ request.GET.order_by }}"
+                        >
+                            قبلی
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&order_by={{ request.GET.order_by }}"
+                        >
+                            بعدی
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}
