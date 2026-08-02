@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}
+    جزئیات سفارش #{{ order.id }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                جزئیات سفارش #{{ order.id }}
+            </h1>
+
+            <p class="text-muted mb-0">
+                ثبت شده در
+                {{ order.created_date|date:"Y/m/d - H:i" }}
+            </p>
+        </div>
+
+        <a
+            href="{% url 'dashboard:customer:order-list' %}"
+            class="btn btn-outline-secondary"
+        >
+            بازگشت به سفارش‌ها
+        </a>
+    </div>
+
+    <div class="row g-4">
+
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    محصولات سفارش
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>محصول</th>
+                                <th>قیمت واحد</th>
+                                <th>تعداد</th>
+                                <th>جمع</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            {% for item in order.order_items.all %}
+                                <tr>
+                                    <td>
+                                        {{ item.product.title }}
+                                    </td>
+
+                                    <td>
+                                        {{ item.price }} تومان
+                                    </td>
+
+                                    <td>
+                                        {{ item.quantity }}
+                                    </td>
+
+                                    <td>
+                                        {{ item.get_total_price }} تومان
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    اطلاعات سفارش
+                </div>
+
+                <div class="card-body">
+                    <p>
+                        <strong>وضعیت:</strong>
+
+                        {% if order.is_successful %}
+                            <span class="badge bg-success">
+                                {{ order.get_status.label }}
+                            </span>
+                        {% elif order.status == 1 %}
+                            <span class="badge bg-warning text-dark">
+                                {{ order.get_status.label }}
+                            </span>
+                        {% else %}
+                            <span class="badge bg-danger">
+                                {{ order.get_status.label }}
+                            </span>
+                        {% endif %}
+                    </p>
+
+                    <p>
+                        <strong>مبلغ نهایی:</strong>
+                        {{ order.get_price }} تومان
+                    </p>
+
+                    {% if order.coupon %}
+                        <p>
+                            <strong>کد تخفیف:</strong>
+                            {{ order.coupon.code }}
+                        </p>
+                    {% endif %}
+
+                    {% if order.payment %}
+                        <p class="mb-0">
+                            <strong>شناسه پرداخت:</strong>
+                            {{ order.payment.ref_id|default:"در انتظار پرداخت" }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    آدرس ارسال
+                </div>
+
+                <div class="card-body">
+                    <p class="mb-0">
+                        {{ order.state }}،
+                        {{ order.city }}،
+                        {{ order.address }}
+                        <br>
+                        کد پستی: {{ order.zip_code }}
+                    </p>
+                </div>
+            </div>
+
+            {% if order.is_successful %}
+                <a
+                    href="{% url 'dashboard:customer:order-invoice' order.id %}"
+                    target="_blank"
+                    class="btn btn-success w-100 mt-4"
+                >
+                    مشاهده فاکتور
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
