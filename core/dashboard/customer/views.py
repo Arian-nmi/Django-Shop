@@ -7,12 +7,11 @@ from django.views.generic import (
     ListView,
     TemplateView,
     UpdateView,
+    DetailView,
 )
 
-from order.models import UserAddressModel
-
+from order.models import UserAddressModel, OrderModel, OrderStatusType
 from dashboard.permissions import CustomerDashboardRequiredMixin
-
 from .forms import UserAddressForm
 
 
@@ -105,4 +104,102 @@ class CustomerAddressDeleteView(
     def get_success_url(self):
         return reverse_lazy(
             "dashboard:customer:address-list"
+        )
+
+
+class CustomerOrderListView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    ListView,
+):
+    template_name = (
+        "dashboard/customer/orders/order-list.html"
+    )
+    context_object_name = "orders"
+    paginate_by = 10
+
+    ALLOWED_ORDERINGS = {
+        "newest": "-created_date",
+        "oldest": "created_date",
+        "price_asc": "total_price",
+        "price_desc": "-total_price",
+    }
+
+    def get_queryset(self):
+        queryset = (
+            OrderModel.objects
+            .filter(user=self.request.user)
+            .select_related("coupon", "payment")
+            .prefetch_related("order_items__product")
+        )
+
+        search_query = self.request.GET.get("q", "").strip()
+
+        if search_query.isdigit():
+            queryset = queryset.filter(id=int(search_query))
+
+        status = self.request.GET.get("status")
+
+        valid_statuses = {
+            str(status_id)
+            for status_id, _ in OrderStatusType.choices
+        }
+
+        if status in valid_statuses:
+            queryset = queryset.filter(status=int(status))
+
+        order_by = self.request.GET.get("order_by")
+
+        if order_by in self.ALLOWED_ORDERINGS:
+            queryset = queryset.order_by(
+                self.ALLOWED_ORDERINGS[order_by]
+            )
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["status_types"] = OrderStatusType.choices
+        context["total_items"] = context["paginator"].count
+
+        return context
+
+
+class CustomerOrderDetailView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    DetailView,
+):
+    template_name = (
+        "dashboard/customer/orders/order-detail.html"
+    )
+    context_object_name = "order"
+
+    def get_queryset(self):
+        return (
+            OrderModel.objects
+            .filter(user=self.request.user)
+            .select_related("coupon", "payment")
+            .prefetch_related("order_items__product")
+        )
+
+
+class CustomerOrderInvoiceView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    DetailView,
+):
+    template_name = (
+        "dashboard/customer/orders/order-invoice.html"
+    )
+    context_object_name = "order"
+
+    def get_queryset(self):
+        return (
+            OrderModel.objects.filter(
+                    user=self.request.user,
+                    status=OrderStatusType.success.value,
+                )
+            .select_related("coupon", "payment")
+            .prefetch_related("order_items__product")
         )
