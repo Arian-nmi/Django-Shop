@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}
+    مدیریت محصولات
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                مدیریت محصولات
+            </h1>
+
+            <p class="text-muted mb-0">
+                {{ total_items }} محصول ثبت شده است.
+            </p>
+        </div>
+
+        <a
+            href="{% url 'dashboard:admin:product-create' %}"
+            class="btn btn-primary"
+        >
+            ایجاد محصول
+        </a>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+
+                <div class="col-md-4">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        value="{{ request.GET.q }}"
+                        placeholder="جستجو بر اساس عنوان محصول"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="category_id"
+                        class="form-select"
+                    >
+                        <option value="">
+                            همه دسته‌بندی‌ها
+                        </option>
+
+                        {% for category in categories %}
+                            <option
+                                value="{{ category.id }}"
+                                {% if request.GET.category_id == category.id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ category.title }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="order_by"
+                        class="form-select"
+                    >
+                        <option value="">
+                            مرتب‌سازی پیش‌فرض
+                        </option>
+
+                        <option
+                            value="newest"
+                            {% if request.GET.order_by == "newest" %}
+                                selected
+                            {% endif %}
+                        >
+                            جدیدترین
+                        </option>
+
+                        <option
+                            value="oldest"
+                            {% if request.GET.order_by == "oldest" %}
+                                selected
+                            {% endif %}
+                        >
+                            قدیمی‌ترین
+                        </option>
+
+                        <option
+                            value="price_asc"
+                            {% if request.GET.order_by == "price_asc" %}
+                                selected
+                            {% endif %}
+                        >
+                            قیمت صعودی
+                        </option>
+
+                        <option
+                            value="price_desc"
+                            {% if request.GET.order_by == "price_desc" %}
+                                selected
+                            {% endif %}
+                        >
+                            قیمت نزولی
+                        </option>
+
+                        <option
+                            value="title_asc"
+                            {% if request.GET.order_by == "title_asc" %}
+                                selected
+                            {% endif %}
+                        >
+                            عنوان از الف تا ی
+                        </option>
+
+                        <option
+                            value="title_desc"
+                            {% if request.GET.order_by == "title_desc" %}
+                                selected
+                            {% endif %}
+                        >
+                            عنوان از ی تا الف
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary w-100"
+                    >
+                        جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>تصویر</th>
+                        <th>عنوان</th>
+                        <th>دسته‌بندی</th>
+                        <th>موجودی</th>
+                        <th>قیمت</th>
+                        <th>وضعیت</th>
+                        <th class="text-end">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for product in products %}
+                        <tr>
+                            <td>
+                                {{ product.id }}
+                            </td>
+
+                            <td>
+                                <img
+                                    src="{{ product.image.url }}"
+                                    alt="{{ product.title }}"
+                                    width="45"
+                                    height="45"
+                                    class="rounded object-fit-cover"
+                                >
+                            </td>
+
+                            <td>
+                                {{ product.title }}
+                            </td>
+
+                            <td>
+                                {% for category in product.category.all %}
+                                    {{ category.title }}{% if not forloop.last %}،{% endif %}
+                                {% empty %}
+                                    -
+                                {% endfor %}
+                            </td>
+
+                            <td>
+                                {{ product.stock }}
+                            </td>
+
+                            <td>
+                                {{ product.get_price }} تومان
+                            </td>
+
+                            <td>
+                                {% if product.is_published %}
+                                    <span class="badge bg-success">
+                                        نمایش
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-secondary">
+                                        Draft
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+
+                                    <a
+                                        href="{% url 'dashboard:admin:product-edit' product.id %}"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        ویرایش
+                                    </a>
+
+                                    {% if product.is_published %}
+                                        <a
+                                            href="{% url 'shop:product-detail' product.slug %}"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-secondary"
+                                        >
+                                            مشاهده
+                                        </a>
+                                    {% endif %}
+
+                                    <a
+                                        href="{% url 'dashboard:admin:product-delete' product.id %}"
+                                        class="btn btn-sm btn-outline-danger"
+                                    >
+                                        حذف
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-5">
+                                محصولی پیدا نشد.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&category_id={{ request.GET.category_id }}&order_by={{ request.GET.order_by }}"
+                        >
+                            قبلی
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&category_id={{ request.GET.category_id }}&order_by={{ request.GET.order_by }}"
+                        >
+                            بعدی
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

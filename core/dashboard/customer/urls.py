@@ -17,4 +17,8 @@ urlpatterns = [
 
     path("wishlists/", views.CustomerWishlistListView.as_view(), name="wishlist-list"),
     path("wishlists/<int:pk>/delete/", views.CustomerWishlistDeleteView.as_view(), name="wishlist-delete"),
+
+    path("profile/edit/", views.CustomerProfileEditView.as_view(), name="profile-edit"),
+    path("profile/image/", views.CustomerProfileImageEditView.as_view(), name="profile-image-edit"),
+    path("profile/security/", views.CustomerSecurityEditView.as_view(), name="security-edit"),
 ]
