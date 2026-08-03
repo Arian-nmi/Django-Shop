@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import views as auth_views
 from django.contrib.messages.views import SuccessMessageMixin
 from django.urls import reverse_lazy
 from django.contrib import messages
@@ -15,8 +16,9 @@ from django.views.generic import (
 
 from order.models import UserAddressModel, OrderModel, OrderStatusType
 from shop.models import WishlistProductModel
+from accounts.models import Profile
 from dashboard.permissions import CustomerDashboardRequiredMixin
-from .forms import UserAddressForm
+from .forms import UserAddressForm, CustomerProfileForm, CustomerPasswordChangeForm
 
 
 class CustomerDashboardHomeView(
@@ -32,15 +34,11 @@ class CustomerAddressListView(
     CustomerDashboardRequiredMixin,
     ListView,
 ):
-    template_name = (
-        "dashboard/customer/addresses/address-list.html"
-    )
+    template_name = "dashboard/customer/addresses/address-list.html"
     context_object_name = "addresses"
 
     def get_queryset(self):
-        return UserAddressModel.objects.filter(
-            user=self.request.user
-        ).order_by("-created_date")
+        return UserAddressModel.objects.filter(user=self.request.user).order_by("-created_date")
 
 
 class CustomerAddressCreateView(
@@ -49,9 +47,7 @@ class CustomerAddressCreateView(
     SuccessMessageMixin,
     CreateView,
 ):
-    template_name = (
-        "dashboard/customer/addresses/address-create.html"
-    )
+    template_name = "dashboard/customer/addresses/address-create.html"
     form_class = UserAddressForm
     success_message = "آدرس جدید با موفقیت ثبت شد."
 
@@ -60,9 +56,7 @@ class CustomerAddressCreateView(
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy(
-            "dashboard:customer:address-list"
-        )
+        return reverse_lazy("dashboard:customer:address-list")
 
 
 class CustomerAddressUpdateView(
@@ -71,21 +65,15 @@ class CustomerAddressUpdateView(
     SuccessMessageMixin,
     UpdateView,
 ):
-    template_name = (
-        "dashboard/customer/addresses/address-edit.html"
-    )
+    template_name = "dashboard/customer/addresses/address-edit.html"
     form_class = UserAddressForm
     success_message = "آدرس با موفقیت ویرایش شد."
 
     def get_queryset(self):
-        return UserAddressModel.objects.filter(
-            user=self.request.user
-        )
+        return UserAddressModel.objects.filter(user=self.request.user)
 
     def get_success_url(self):
-        return reverse_lazy(
-            "dashboard:customer:address-list"
-        )
+        return reverse_lazy("dashboard:customer:address-list")
 
 
 class CustomerAddressDeleteView(
@@ -94,21 +82,14 @@ class CustomerAddressDeleteView(
     SuccessMessageMixin,
     DeleteView,
 ):
-    template_name = (
-        "dashboard/customer/addresses/address-delete.html"
-    )
+    template_name = "dashboard/customer/addresses/address-delete.html"
     success_message = "آدرس با موفقیت حذف شد."
 
     def get_queryset(self):
-        # جلوگیری از delete آدرس user دیگر
-        return UserAddressModel.objects.filter(
-            user=self.request.user
-        )
+        return UserAddressModel.objects.filter(user=self.request.user)
 
     def get_success_url(self):
-        return reverse_lazy(
-            "dashboard:customer:address-list"
-        )
+        return reverse_lazy("dashboard:customer:address-list")
 
 
 class CustomerOrderListView(
@@ -116,9 +97,7 @@ class CustomerOrderListView(
     CustomerDashboardRequiredMixin,
     ListView,
 ):
-    template_name = (
-        "dashboard/customer/orders/order-list.html"
-    )
+    template_name = "dashboard/customer/orders/order-list.html"
     context_object_name = "orders"
     paginate_by = 10
 
@@ -155,9 +134,7 @@ class CustomerOrderListView(
         order_by = self.request.GET.get("order_by")
 
         if order_by in self.ALLOWED_ORDERINGS:
-            queryset = queryset.order_by(
-                self.ALLOWED_ORDERINGS[order_by]
-            )
+            queryset = queryset.order_by(self.ALLOWED_ORDERINGS[order_by])
 
         return queryset
 
@@ -174,9 +151,7 @@ class CustomerOrderDetailView(
     CustomerDashboardRequiredMixin,
     DetailView,
 ):
-    template_name = (
-        "dashboard/customer/orders/order-detail.html"
-    )
+    template_name = "dashboard/customer/orders/order-detail.html"
     context_object_name = "order"
 
     def get_queryset(self):
@@ -193,9 +168,7 @@ class CustomerOrderInvoiceView(
     CustomerDashboardRequiredMixin,
     DetailView,
 ):
-    template_name = (
-        "dashboard/customer/orders/order-invoice.html"
-    )
+    template_name = "dashboard/customer/orders/order-invoice.html"
     context_object_name = "order"
 
     def get_queryset(self):
@@ -232,28 +205,20 @@ class CustomerWishlistListView(
             .select_related("product")
         )
 
-        search_query = self.request.GET.get(
-            "q",
-            "",
-        ).strip()
+        search_query = self.request.GET.get("q", "").strip()
 
         if search_query:
-            queryset = queryset.filter(
-                product__title__icontains=search_query
-            )
+            queryset = queryset.filter(product__title__icontains=search_query)
 
         order_by = self.request.GET.get("order_by")
 
         if order_by in self.ALLOWED_ORDERINGS:
-            queryset = queryset.order_by(
-                self.ALLOWED_ORDERINGS[order_by]
-            )
+            queryset = queryset.order_by(self.ALLOWED_ORDERINGS[order_by])
 
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
         context["total_items"] = context["paginator"].count
 
         return context
@@ -274,12 +239,55 @@ class CustomerWishlistDeleteView(
         )
 
         wishlist_item.delete()
+        messages.success(request, "محصول از لیست علاقه‌مندی‌ها حذف شد.")
 
-        messages.success(
-            request,
-            "محصول از لیست علاقه‌مندی‌ها حذف شد.",
-        )
+        return redirect("dashboard:customer:wishlist-list")
 
-        return redirect(
-            "dashboard:customer:wishlist-list"
-        )
+
+class CustomerProfileEditView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    template_name = "dashboard/customer/profile/profile-edit.html"
+    form_class = CustomerProfileForm
+    success_message = "اطلاعات پروفایل با موفقیت بروزرسانی شد."
+
+    def get_object(self, queryset=None):
+        return Profile.objects.get(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:customer:profile-edit")
+
+
+class CustomerProfileImageEditView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    http_method_names = ["post"]
+    model = Profile
+    fields = ["image"]
+    success_message = "تصویر پروفایل با موفقیت بروزرسانی شد."
+
+    def get_object(self, queryset=None):
+        return Profile.objects.get(user=self.request.user)
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:customer:profile-edit")
+
+
+class CustomerSecurityEditView(
+    LoginRequiredMixin,
+    CustomerDashboardRequiredMixin,
+    SuccessMessageMixin,
+    auth_views.PasswordChangeView,
+):
+    template_name = "dashboard/customer/profile/security-edit.html"
+    form_class = CustomerPasswordChangeForm
+    success_message = "رمز عبور با موفقیت تغییر کرد."
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:customer:security-edit")
