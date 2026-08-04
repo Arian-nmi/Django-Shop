@@ -1,17 +1,18 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import TemplateView
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.contrib import messages
 from django.db.models.deletion import ProtectedError
+from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, UpdateView
 
-
 from .forms import AdminProductForm, AdminProductImageForm
 from dashboard.permissions import StaffDashboardRequiredMixin
 from shop.models import ProductCategoryModel, ProductModel, ProductImageModel
+from order.models import OrderModel, OrderStatusType
 
 
 class AdminDashboardHomeView(
@@ -186,3 +187,90 @@ class AdminProductRemoveImageView(
         messages.success(request, "تصویر محصول حذف شد.")
 
         return redirect("dashboard:admin:product-edit", pk=product.pk)
+
+
+class AdminOrderListView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    ListView,
+):
+    template_name = "dashboard/admin/orders/order-list.html"
+    context_object_name = "orders"
+    paginate_by = 10
+
+    ALLOWED_ORDERINGS = {
+        "newest": "-created_date",
+        "oldest": "created_date",
+        "price_asc": "total_price",
+        "price_desc": "-total_price",
+    }
+
+    def get_queryset(self):
+        queryset = (
+            OrderModel.objects
+            .select_related("user", "coupon", "payment")
+            .prefetch_related("order_items__product")
+        )
+
+        search_query = self.request.GET.get("q", "").strip()
+
+        if search_query:
+            filters = Q(user__email__icontains=search_query)
+
+            if search_query.isdigit():
+                filters |= Q(id=int(search_query))
+
+            queryset = queryset.filter(filters)
+
+        status = self.request.GET.get("status")
+
+        valid_statuses = {
+            str(status_id)
+            for status_id, _ in OrderStatusType.choices
+        }
+
+        if status in valid_statuses:
+            queryset = queryset.filter(status=int(status))
+
+        order_by = self.request.GET.get("order_by")
+
+        if order_by in self.ALLOWED_ORDERINGS:
+            queryset = queryset.order_by(self.ALLOWED_ORDERINGS[order_by])
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["total_items"] = context["paginator"].count
+        context["status_types"] = OrderStatusType.choices
+
+        return context
+
+
+class AdminOrderDetailView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    DetailView,
+):
+    template_name = "dashboard/admin/orders/order-detail.html"
+    context_object_name = "order"
+    queryset = (
+        OrderModel.objects
+        .select_related("user", "coupon", "payment")
+        .prefetch_related("order_items__product")
+    )
+
+
+class AdminOrderInvoiceView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    DetailView,
+):
+    template_name = "dashboard/admin/orders/order-invoice.html"
+    context_object_name = "order"
+    queryset = (
+        OrderModel.objects
+        .filter( status=OrderStatusType.success.value)
+        .select_related("user", "coupon", "payment")
+        .prefetch_related("order_items__product")
+    )
