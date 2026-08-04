@@ -1,119 +1,350 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
 {% load static %}
-
 {% load shop_tags %}
 
-{% block title %}{{ product.title }}{% endblock %}
+{% block title %}
+    {{ product.title }}
+{% endblock %}
 
 {% block content %}
+
 <div class="row mt-5">
-  <div class="col-12">
-    {% show_similar_products product %}
-  </div>
+    <div class="col-12">
+        {% show_similar_products product %}
+    </div>
 </div>
+
 <main id="content" role="main">
-  <div class="container content-space-t-1 content-space-b-lg-3">
-    <div class="row">
-      <div class="col-md-7 mb-7 mb-md-0">
-        <div class="pe-md-4">
-          <div class="card-pinned">
-            <div class="js-swiper-shop-product swiper">
-              <div class="swiper-wrapper">
-                {% if product.product_images.all %}
-                  {% for img in product.product_images.all %}
-                    <div class="swiper-slide">
-                      <div class="card card-bordered shadow-none">
-                        <img class="card-img" src="{{ img.file.url }}" alt="{{ product.title }}">
-                      </div>
-                    </div>
-                  {% endfor %}
-                {% else %}
-                  <div class="swiper-slide">
-                    <div class="card card-bordered shadow-none">
-                      <img class="card-img" src="{{ product.image.url }}" alt="{{ product.title }}">
-                    </div>
-                  </div>
-                {% endif %}
-              </div>
+    <div class="container content-space-t-1 content-space-b-lg-3">
 
-              <div class="js-swiper-shop-product-button-next swiper-button-next"></div>
-              <div class="js-swiper-shop-product-button-prev swiper-button-prev"></div>
-            </div>
+        <div class="row">
+            <div class="col-md-7 mb-7 mb-md-0">
+                <div class="pe-md-4">
+                    <div class="card-pinned">
 
-            <div class="position-absolute bottom-0 end-0 start-0 zi-1 p-4">
-              <div class="js-swiper-shop-product-thumb swiper" style="max-width: 15rem;">
-                <div class="swiper-wrapper">
-                  {% if product.product_images.all %}
-                    {% for img in product.product_images.all %}
-                      <div class="swiper-slide">
-                        <a class="avatar avatar-circle" href="javascript:;"><img class="avatar-img" src="{{ img.file.url }}" alt="{{ product.title }}"></a>
-                      </div>
-                    {% endfor %}
-                  {% else %}
-                    <div class="swiper-slide">
-                      <a class="avatar avatar-circle" href="javascript:;"><img class="avatar-img" src="{{ product.image.url }}" alt="{{ product.title }}"></a>
+                        <div class="js-swiper-shop-product swiper">
+                            <div class="swiper-wrapper">
+
+                                {% if product.product_images.all %}
+                                    {% for img in product.product_images.all %}
+                                        <div class="swiper-slide">
+                                            <div class="card card-bordered shadow-none">
+                                                <img
+                                                    class="card-img"
+                                                    src="{{ img.file.url }}"
+                                                    alt="{{ product.title }}"
+                                                >
+                                            </div>
+                                        </div>
+                                    {% endfor %}
+
+                                {% else %}
+                                    <div class="swiper-slide">
+                                        <div class="card card-bordered shadow-none">
+                                            <img
+                                                class="card-img"
+                                                src="{{ product.image.url }}"
+                                                alt="{{ product.title }}"
+                                            >
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="js-swiper-shop-product-button-next swiper-button-next"></div>
+                            <div class="js-swiper-shop-product-button-prev swiper-button-prev"></div>
+                        </div>
+
+                        <div class="position-absolute bottom-0 end-0 start-0 zi-1 p-4">
+                            <div
+                                class="js-swiper-shop-product-thumb swiper"
+                                style="max-width: 15rem;"
+                            >
+                                <div class="swiper-wrapper">
+
+                                    {% if product.product_images.all %}
+                                        {% for img in product.product_images.all %}
+                                            <div class="swiper-slide">
+                                                <a
+                                                    class="avatar avatar-circle"
+                                                    href="javascript:;"
+                                                >
+                                                    <img
+                                                        class="avatar-img"
+                                                        src="{{ img.file.url }}"
+                                                        alt="{{ product.title }}"
+                                                    >
+                                                </a>
+                                            </div>
+                                        {% endfor %}
+
+                                    {% else %}
+                                        <div class="swiper-slide">
+                                            <a
+                                                class="avatar avatar-circle"
+                                                href="javascript:;"
+                                            >
+                                                <img
+                                                    class="avatar-img"
+                                                    src="{{ product.image.url }}"
+                                                    alt="{{ product.title }}"
+                                                >
+                                            </a>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  {% endif %}
                 </div>
-              </div>
             </div>
 
-          </div>
+            <div class="col-md-5">
+                <a
+                    class="d-flex gap-1 mb-4"
+                    href="#reviewSection"
+                >
+                    <img
+                        src="{% static 'assets/svg/illustrations/star.svg' %}"
+                        alt="Review rating"
+                        width="16"
+                    >
+
+                    <span class="ms-1">
+                        {{ product.avg_rate|default:0 }} امتیاز
+                    </span>
+                </a>
+
+                <div class="mb-5">
+                    <h1 class="h2">
+                        {{ product.title }}
+                    </h1>
+
+                    <p>
+                        {{ product.brief_description|default:product.description }}
+                    </p>
+                </div>
+
+                <div class="mb-5">
+                    <span class="d-block mb-2">
+                        قیمت کل:
+                    </span>
+
+                    <div class="d-flex align-items-center">
+                        <h3 class="mb-0">
+                            {{ product.get_price }} تومان
+                        </h3>
+
+                        {% if product.is_discounted %}
+                            <span class="ms-2">
+                                <del>
+                                    {{ product.price }}
+                                </del>
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <div class="d-flex gap-2">
+                        <button
+                            type="button"
+                            id="add-to-cart-button"
+                            class="btn btn-primary btn-lg"
+                            data-product-id="{{ product.id }}"
+                        >
+                            اضافه به سبد خرید
+                        </button>
+
+                        <button
+                            type="button"
+                            id="wishlist-button"
+                            class="wishlist-button btn btn-outline-secondary btn-lg"
+                            data-product-id="{{ product.id }}"
+                        >
+                            {% if is_wished %}
+                                حذف از علاقه‌مندی
+                            {% else %}
+                                افزودن به علاقه‌مندی
+                            {% endif %}
+                        </button>
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <div class="col-md-5">
-        <a class="d-flex gap-1 mb-4" href="#reviewSection">
-          <img src="{% static 'assets/svg/illustrations/star.svg' %}" alt="Review rating" width="16">
-          <span class="ms-1">{{ product.avg_rate|default:0 }} امتیاز</span>
-        </a>
+        <div class="row mt-5">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <h4 class="mb-3">
+                            توضیحات محصول
+                        </h4>
 
-        <div class="mb-5">
-          <h1 class="h2">{{ product.title }}</h1>
-          <p>{{ product.brief_description|default:product.description }}</p>
+                        <div>
+                            {{ product.description|linebreaks }}
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="mb-5">
-          <span class="d-block mb-2">قیمت کل:</span>
-          <div class="d-flex align-items-center">
-            <h3 class="mb-0">{{ product.get_price }} تومان</h3>
-            {% if product.is_discounted %}
-              <span class="ms-2"><del>{{ product.price }}</del></span>
-            {% endif %}
-          </div>
-        </div>
+        <section
+            id="reviewSection"
+            class="row mt-5"
+        >
+            <div class="col-lg-7 mb-5 mb-lg-0">
+                <div class="card h-100">
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h3 class="h5 mb-0">
+                                نظرات مشتریان
+                            </h3>
 
-        <div class="mb-3">
-          <div class="d-flex gap-2">
-            <button type="button" id="add-to-cart-button" class="btn btn-primary btn-lg" data-product-id="{{ product.id }}">اضافه به سبد خرید</button>
-            <button type="button" id="wishlist-button" class="wishlist-button btn btn-outline-secondary btn-lg" data-product-id="{{ product.id }}">
-              {% if is_wished %}حذف از علاقه‌مندی{% else %}افزودن به علاقه‌مندی{% endif %}
-            </button>
-          </div>
-        </div>
+                            <span class="text-muted">
+                                {{ reviews_count }} نظر
+                            </span>
+                        </div>
+                    </div>
 
-      </div>
+                    <div class="card-body">
+                        {% for review in reviews %}
+                            <div
+                                class="{% if not forloop.last %}border-bottom pb-4 mb-4{% endif %}"
+                            >
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <strong>
+                                            {{ review.user.user_profile.get_fullname }}
+                                        </strong>
+
+                                        <div class="small text-muted">
+                                            {{ review.created_date|date:"Y/m/d - H:i" }}
+                                        </div>
+                                    </div>
+
+                                    <span class="badge bg-warning text-dark">
+                                        {{ review.rate }} / 5 ★
+                                    </span>
+                                </div>
+
+                                <p class="mb-0">
+                                    {{ review.description|linebreaksbr }}
+                                </p>
+                            </div>
+
+                        {% empty %}
+                            <div class="alert alert-light mb-0">
+                                هنوز نظری برای این محصول ثبت نشده است.
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="h5 mb-0">
+                            ثبت نظر
+                        </h3>
+                    </div>
+
+                    <div class="card-body">
+                        {% if request.user.is_authenticated %}
+                            <form
+                                method="post"
+                                action="{% url 'review:submit' product.slug %}"
+                            >
+                                {% csrf_token %}
+
+                                <div class="mb-3">
+                                    <label
+                                        for="rate"
+                                        class="form-label"
+                                    >
+                                        امتیاز شما
+                                    </label>
+
+                                    <select
+                                        id="rate"
+                                        name="rate"
+                                        class="form-select"
+                                        required
+                                    >
+                                        <option value="5">
+                                            5 ستاره - عالی
+                                        </option>
+
+                                        <option value="4">
+                                            4 ستاره - خوب
+                                        </option>
+
+                                        <option value="3">
+                                            3 ستاره - متوسط
+                                        </option>
+
+                                        <option value="2">
+                                            2 ستاره - ضعیف
+                                        </option>
+
+                                        <option value="1">
+                                            1 ستاره - خیلی ضعیف
+                                        </option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label
+                                        for="description"
+                                        class="form-label"
+                                    >
+                                        متن نظر
+                                    </label>
+
+                                    <textarea
+                                        id="description"
+                                        name="description"
+                                        class="form-control"
+                                        rows="5"
+                                        placeholder="نظر خود را درباره محصول بنویسید..."
+                                        required
+                                    ></textarea>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    class="btn btn-primary w-100"
+                                >
+                                    ثبت نظر
+                                </button>
+                            </form>
+
+                        {% else %}
+                            <div class="alert alert-info mb-0">
+                                برای ثبت نظر ابتدا وارد حساب کاربری شوید.
+
+                                <a
+                                    href="{% url 'accounts:login' %}?next={{ request.path }}"
+                                    class="alert-link"
+                                >
+                                    ورود به حساب
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </section>
     </div>
-
-    <!-- Additional content like description, specs, reviews placeholder -->
-    <div class="row mt-5">
-      <div class="col-12">
-        <h4>توضیحات</h4>
-        <p>{{ product.description|linebreaks }}</p>
-      </div>
-    </div>
-
-  </div>
 </main>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         const csrfToken = "{{ csrf_token }}";
 
-        // -------------------------
         // Wishlist
-        // -------------------------
         document.querySelectorAll(".wishlist-button").forEach(function (button) {
             button.addEventListener("click", async function (event) {
                 event.preventDefault();
@@ -139,7 +370,10 @@
                     const data = await response.json();
 
                     if (!response.ok) {
-                        alert(data.message || "خطا در درخواست");
+                        alert(
+                            data.message || "خطا در درخواست"
+                        );
+
                         return;
                     }
 
@@ -149,57 +383,77 @@
 
                 } catch (error) {
                     console.error("Wishlist error:", error);
+
                     alert("خطا در اتصال به سرور");
                 }
             });
         });
 
-        // -------------------------
         // Add product to cart
-        // -------------------------
-        const addToCartButton = document.getElementById("add-to-cart-button");
+        const addToCartButton = document.getElementById(
+            "add-to-cart-button"
+        );
 
         if (addToCartButton) {
-            addToCartButton.addEventListener("click", async function (event) {
-                event.preventDefault();
+            addToCartButton.addEventListener(
+                "click",
+                async function (event) {
+                    event.preventDefault();
 
-                const productId = this.dataset.productId;
+                    const productId = this.dataset.productId;
 
-                const formData = new FormData();
-                formData.append("product_id", productId);
-
-                try {
-                    const response = await fetch(
-                        '{% url "cart:session-add-product" %}',
-                        {
-                            method: "POST",
-                            headers: {
-                                "X-CSRFToken": csrfToken,
-                            },
-                            body: formData,
-                            credentials: "same-origin",
-                        }
+                    const formData = new FormData();
+                    formData.append(
+                        "product_id",
+                        productId
                     );
 
-                    const data = await response.json();
+                    try {
+                        const response = await fetch(
+                            '{% url "cart:session-add-product" %}',
+                            {
+                                method: "POST",
+                                headers: {
+                                    "X-CSRFToken": csrfToken,
+                                },
+                                body: formData,
+                                credentials: "same-origin",
+                            }
+                        );
 
-                    if (!response.ok) {
-                        alert(data.message || "خطا در افزودن محصول به سبد خرید");
-                        return;
+                        const data = await response.json();
+
+                        if (!response.ok) {
+                            alert(
+                                data.message ||
+                                "خطا در افزودن محصول به سبد خرید"
+                            );
+
+                            return;
+                        }
+
+                        const cartCount = document.getElementById(
+                            "total-cart-item-count"
+                        );
+
+                        if (cartCount) {
+                            cartCount.textContent =
+                                data.total_quantity;
+                        }
+
+                    } catch (error) {
+                        console.error(
+                            "Cart error:",
+                            error
+                        );
+
+                        alert("خطا در اتصال به سرور");
                     }
-
-                    document.getElementById('total-cart-item-count').textContent = data.total_quantity;
-
-                } catch (error) {
-                    console.error("Cart error:", error);
-                    alert("خطا در اتصال به سرور");
                 }
-            });
+            );
         }
 
-        // -------------------------
         // Product image slider
-        // -------------------------
         const sliderThumbs = new Swiper(
             ".js-swiper-shop-product-thumb",
             {

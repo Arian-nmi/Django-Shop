@@ -1,0 +1,173 @@
+{% extends "base.html" %}
+
+{% block title %}
+    مدیریت نظرات
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                مدیریت نظرات مشتریان
+            </h1>
+
+            <p class="text-muted mb-0">
+                {{ total_items }} نظر ثبت شده است.
+            </p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+
+                <div class="col-md-4">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        value="{{ request.GET.q }}"
+                        placeholder="محصول، email یا متن نظر"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="status"
+                        class="form-select"
+                    >
+                        <option value="">
+                            همه وضعیت‌ها
+                        </option>
+
+                        {% for status_id, status_label in status_types %}
+                            <option
+                                value="{{ status_id }}"
+                                {% if request.GET.status == status_id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ status_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="order_by"
+                        class="form-select"
+                    >
+                        <option value="">
+                            مرتب‌سازی پیش‌فرض
+                        </option>
+
+                        <option value="newest">
+                            جدیدترین
+                        </option>
+
+                        <option value="oldest">
+                            قدیمی‌ترین
+                        </option>
+
+                        <option value="rate_asc">
+                            امتیاز صعودی
+                        </option>
+
+                        <option value="rate_desc">
+                            امتیاز نزولی
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary w-100"
+                    >
+                        جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>مشتری</th>
+                        <th>محصول</th>
+                        <th>امتیاز</th>
+                        <th>متن نظر</th>
+                        <th>وضعیت</th>
+                        <th class="text-end">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for review in reviews %}
+                        <tr>
+                            <td>{{ review.id }}</td>
+
+                            <td>
+                                {{ review.user.email }}
+                            </td>
+
+                            <td>
+                                {{ review.product.title }}
+                            </td>
+
+                            <td>
+                                <span class="badge bg-warning text-dark">
+                                    {{ review.rate }} / 5 ★
+                                </span>
+                            </td>
+
+                            <td>
+                                {{ review.description|truncatechars:70 }}
+                            </td>
+
+                            <td>
+                                {% if review.status == 1 %}
+                                    <span class="badge bg-warning text-dark">
+                                        {{ review.get_status.label }}
+                                    </span>
+                                {% elif review.status == 2 %}
+                                    <span class="badge bg-success">
+                                        {{ review.get_status.label }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        {{ review.get_status.label }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">
+                                <a
+                                    href="{% url 'dashboard:admin:review-edit' review.id %}"
+                                    class="btn btn-sm btn-outline-primary"
+                                >
+                                    بررسی
+                                </a>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                نظری ثبت نشده است.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

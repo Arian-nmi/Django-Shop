@@ -10,25 +10,19 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, UpdateView
 
-from .forms import AdminProductForm, AdminProductImageForm, AdminCouponForm
+from .forms import AdminProductForm, AdminProductImageForm, AdminCouponForm, AdminReviewForm
 from dashboard.permissions import StaffDashboardRequiredMixin
+
 from shop.models import ProductCategoryModel, ProductModel, ProductImageModel
 from order.models import OrderModel, OrderStatusType, CouponModel
+from review.models import ReviewModel, ReviewStatusType
 
 
-class AdminDashboardHomeView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    TemplateView,
-):
+class AdminDashboardHomeView(LoginRequiredMixin, StaffDashboardRequiredMixin, TemplateView):
     template_name = "dashboard/admin/home.html"
 
 
-class AdminProductListView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    ListView,
-):
+class AdminProductListView(LoginRequiredMixin, StaffDashboardRequiredMixin, ListView):
     template_name = "dashboard/admin/products/product-list.html"
     context_object_name = "products"
     paginate_by = 10
@@ -77,11 +71,7 @@ class AdminProductListView(
         return context
 
 
-class AdminProductCreateView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    CreateView,
-):
+class AdminProductCreateView(LoginRequiredMixin, StaffDashboardRequiredMixin, CreateView):
     template_name = "dashboard/admin/products/product-create.html"
     form_class = AdminProductForm
 
@@ -98,11 +88,7 @@ class AdminProductCreateView(
         )
 
 
-class AdminProductUpdateView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    UpdateView,
-):
+class AdminProductUpdateView(LoginRequiredMixin, StaffDashboardRequiredMixin, UpdateView):
     model = ProductModel
     form_class = AdminProductForm
     template_name = "dashboard/admin/products/product-edit.html"
@@ -124,11 +110,7 @@ class AdminProductUpdateView(
         )
 
 
-class AdminProductDeleteView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    DeleteView,
-):
+class AdminProductDeleteView(LoginRequiredMixin, StaffDashboardRequiredMixin, DeleteView):
     model = ProductModel
     template_name = "dashboard/admin/products/product-delete.html"
     success_url = reverse_lazy("dashboard:admin:product-list")
@@ -147,11 +129,7 @@ class AdminProductDeleteView(
             return redirect("dashboard:admin:product-edit", pk=kwargs["pk"])
 
 
-class AdminProductAddImageView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    View,
-):
+class AdminProductAddImageView(LoginRequiredMixin, StaffDashboardRequiredMixin, View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
@@ -174,11 +152,7 @@ class AdminProductAddImageView(
         return redirect("dashboard:admin:product-edit", pk=product.pk)
 
 
-class AdminProductRemoveImageView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    View,
-):
+class AdminProductRemoveImageView(LoginRequiredMixin, StaffDashboardRequiredMixin, View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
@@ -190,11 +164,7 @@ class AdminProductRemoveImageView(
         return redirect("dashboard:admin:product-edit", pk=product.pk)
 
 
-class AdminOrderListView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    ListView,
-):
+class AdminOrderListView(LoginRequiredMixin, StaffDashboardRequiredMixin, ListView):
     template_name = "dashboard/admin/orders/order-list.html"
     context_object_name = "orders"
     paginate_by = 10
@@ -248,11 +218,7 @@ class AdminOrderListView(
         return context
 
 
-class AdminOrderDetailView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    DetailView,
-):
+class AdminOrderDetailView(LoginRequiredMixin, StaffDashboardRequiredMixin, DetailView):
     template_name = "dashboard/admin/orders/order-detail.html"
     context_object_name = "order"
     queryset = (
@@ -262,11 +228,7 @@ class AdminOrderDetailView(
     )
 
 
-class AdminOrderInvoiceView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    DetailView,
-):
+class AdminOrderInvoiceView(LoginRequiredMixin, StaffDashboardRequiredMixin, DetailView):
     template_name = "dashboard/admin/orders/order-invoice.html"
     context_object_name = "order"
     queryset = (
@@ -277,11 +239,7 @@ class AdminOrderInvoiceView(
     )
 
 
-class AdminCouponListView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    ListView,
-):
+class AdminCouponListView(LoginRequiredMixin, StaffDashboardRequiredMixin, ListView):
     template_name = "dashboard/admin/coupons/coupon-list.html"
     context_object_name = "coupons"
     paginate_by = 10
@@ -316,12 +274,7 @@ class AdminCouponListView(
         return context
 
 
-class AdminCouponCreateView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    SuccessMessageMixin,
-    CreateView,
-):
+class AdminCouponCreateView(LoginRequiredMixin, StaffDashboardRequiredMixin, SuccessMessageMixin, CreateView):
     template_name = "dashboard/admin/coupons/coupon-create.html"
     form_class = AdminCouponForm
     success_message = "کد تخفیف با موفقیت ایجاد شد."
@@ -330,12 +283,7 @@ class AdminCouponCreateView(
         return reverse_lazy("dashboard:admin:coupon-list")
 
 
-class AdminCouponUpdateView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    SuccessMessageMixin,
-    UpdateView,
-):
+class AdminCouponUpdateView(LoginRequiredMixin, StaffDashboardRequiredMixin, SuccessMessageMixin, UpdateView):
     model = CouponModel
     form_class = AdminCouponForm
     template_name = "dashboard/admin/coupons/coupon-edit.html"
@@ -345,11 +293,7 @@ class AdminCouponUpdateView(
         return reverse_lazy("dashboard:admin:coupon-edit", kwargs={"pk": self.object.pk})
         
 
-class AdminCouponDeleteView(
-    LoginRequiredMixin,
-    StaffDashboardRequiredMixin,
-    DeleteView,
-):
+class AdminCouponDeleteView(LoginRequiredMixin, StaffDashboardRequiredMixin, DeleteView):
     model = CouponModel
     template_name = "dashboard/admin/coupons/coupon-delete.html"
     success_url = reverse_lazy("dashboard:admin:coupon-list")
@@ -362,3 +306,63 @@ class AdminCouponDeleteView(
             messages.error(request, "این کد تخفیف در سفارش ثبت شده و قابل حذف نیست.")
 
             return redirect("dashboard:admin:coupon-edit", pk=kwargs["pk"])
+
+
+class AdminReviewListView(LoginRequiredMixin, StaffDashboardRequiredMixin, ListView):
+    template_name = "dashboard/admin/reviews/review-list.html"
+    context_object_name = "reviews"
+    paginate_by = 10
+
+    ALLOWED_ORDERINGS = {
+        "newest": "-created_date",
+        "oldest": "created_date",
+        "rate_asc": "rate",
+        "rate_desc": "-rate",
+    }
+
+    def get_queryset(self):
+        queryset = ReviewModel.objects.select_related("user", "product")
+        search_query = self.request.GET.get("q", "").strip()
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(user__email__icontains=search_query)
+                | 
+                Q(product__title__icontains=search_query)
+                | 
+                Q(description__icontains=search_query)
+            )
+
+        status = self.request.GET.get("status")
+
+        valid_statuses = {
+            str(status_id)
+            for status_id, _ in ReviewStatusType.choices
+        }
+
+        if status in valid_statuses:
+            queryset = queryset.filter(status=int(status))
+
+        order_by = self.request.GET.get("order_by")
+
+        if order_by in self.ALLOWED_ORDERINGS:
+            queryset = queryset.order_by( self.ALLOWED_ORDERINGS[order_by])
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["total_items"] = context["paginator"].count
+        context["status_types"] = ReviewStatusType.choices
+
+        return context
+
+
+class AdminReviewUpdateView(LoginRequiredMixin, StaffDashboardRequiredMixin, SuccessMessageMixin, UpdateView):
+    model = ReviewModel
+    form_class = AdminReviewForm
+    template_name = "dashboard/admin/reviews/review-edit.html"
+    success_message = "نظر مشتری با موفقیت بروزرسانی شد."
+ 
+    def get_success_url(self):
+        return reverse_lazy("dashboard:admin:review-edit", kwargs={"pk": self.object.pk})

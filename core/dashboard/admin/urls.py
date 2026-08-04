@@ -24,4 +24,7 @@ urlpatterns = [
     path("coupons/create/", views.AdminCouponCreateView.as_view(), name="coupon-create"),
     path("coupons/<int:pk>/edit/", views.AdminCouponUpdateView.as_view(), name="coupon-edit"),
     path("coupons/<int:pk>/delete/", views.AdminCouponDeleteView.as_view(), name="coupon-delete"),
+
+    path("reviews/", views.AdminReviewListView.as_view(), name="review-list"),
+    path("reviews/<int:pk>/edit/", views.AdminReviewUpdateView.as_view(), name="review-edit"),
 ]
