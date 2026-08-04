@@ -1,4 +1,5 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.messages.views import SuccessMessageMixin
 from django.views.generic import TemplateView
 from django.views.generic import ListView, DetailView
 from django.contrib import messages
@@ -9,10 +10,10 @@ from django.urls import reverse_lazy
 from django.views import View
 from django.views.generic import CreateView, DeleteView, UpdateView
 
-from .forms import AdminProductForm, AdminProductImageForm
+from .forms import AdminProductForm, AdminProductImageForm, AdminCouponForm
 from dashboard.permissions import StaffDashboardRequiredMixin
 from shop.models import ProductCategoryModel, ProductModel, ProductImageModel
-from order.models import OrderModel, OrderStatusType
+from order.models import OrderModel, OrderStatusType, CouponModel
 
 
 class AdminDashboardHomeView(
@@ -274,3 +275,90 @@ class AdminOrderInvoiceView(
         .select_related("user", "coupon", "payment")
         .prefetch_related("order_items__product")
     )
+
+
+class AdminCouponListView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    ListView,
+):
+    template_name = "dashboard/admin/coupons/coupon-list.html"
+    context_object_name = "coupons"
+    paginate_by = 10
+
+    ALLOWED_ORDERINGS = {
+        "newest": "-created_date",
+        "oldest": "created_date",
+        "discount_asc": "discount_percent",
+        "discount_desc": "-discount_percent",
+        "expiration_asc": "expiration_date",
+        "expiration_desc": "-expiration_date",
+    }
+
+    def get_queryset(self):
+        queryset = CouponModel.objects.prefetch_related("used_by")
+        search_query = self.request.GET.get("q", "").strip()
+
+        if search_query:
+            queryset = queryset.filter(code__icontains=search_query)
+
+        order_by = self.request.GET.get("order_by")
+
+        if order_by in self.ALLOWED_ORDERINGS:
+            queryset = queryset.order_by(self.ALLOWED_ORDERINGS[order_by])
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["total_items"] = context["paginator"].count
+
+        return context
+
+
+class AdminCouponCreateView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    SuccessMessageMixin,
+    CreateView,
+):
+    template_name = "dashboard/admin/coupons/coupon-create.html"
+    form_class = AdminCouponForm
+    success_message = "کد تخفیف با موفقیت ایجاد شد."
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:admin:coupon-list")
+
+
+class AdminCouponUpdateView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    SuccessMessageMixin,
+    UpdateView,
+):
+    model = CouponModel
+    form_class = AdminCouponForm
+    template_name = "dashboard/admin/coupons/coupon-edit.html"
+    success_message = "کد تخفیف با موفقیت بروزرسانی شد."
+
+    def get_success_url(self):
+        return reverse_lazy("dashboard:admin:coupon-edit", kwargs={"pk": self.object.pk})
+        
+
+class AdminCouponDeleteView(
+    LoginRequiredMixin,
+    StaffDashboardRequiredMixin,
+    DeleteView,
+):
+    model = CouponModel
+    template_name = "dashboard/admin/coupons/coupon-delete.html"
+    success_url = reverse_lazy("dashboard:admin:coupon-list")
+
+    def post(self, request, *args, **kwargs):
+        try:
+            return super().post(request, *args, **kwargs)
+        
+        except ProtectedError:
+            messages.error(request, "این کد تخفیف در سفارش ثبت شده و قابل حذف نیست.")
+
+            return redirect("dashboard:admin:coupon-edit", pk=kwargs["pk"])

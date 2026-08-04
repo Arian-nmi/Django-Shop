@@ -19,4 +19,9 @@ urlpatterns = [
     path("orders/", views.AdminOrderListView.as_view(), name="order-list"),
     path("orders/<int:pk>/detail/", views.AdminOrderDetailView.as_view(), name="order-detail"),
     path("orders/<int:pk>/invoice/", views.AdminOrderInvoiceView.as_view(), name="order-invoice"),
+
+    path("coupons/", views.AdminCouponListView.as_view(), name="coupon-list"),
+    path("coupons/create/", views.AdminCouponCreateView.as_view(), name="coupon-create"),
+    path("coupons/<int:pk>/edit/", views.AdminCouponUpdateView.as_view(), name="coupon-edit"),
+    path("coupons/<int:pk>/delete/", views.AdminCouponDeleteView.as_view(), name="coupon-delete"),
 ]

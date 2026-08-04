@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.utils import timezone
 from decimal import Decimal
 
 
@@ -33,6 +34,19 @@ class CouponModel(models.Model):
     def __str__(self):
         return self.code
 
+    @property
+    def is_expired(self):
+        return (self.expiration_date and self.expiration_date < timezone.now())
+
+    @property
+    def is_exhausted(self):
+        return self.used_by.count() >= self.max_limit_usage
+
+    @property
+    def is_available(self):
+        return not self.is_expired and not self.is_exhausted
+
+    
 class OrderModel(models.Model):
     user = models.ForeignKey('accounts.User', on_delete=models.PROTECT, related_name="orders")
     coupon = models.ForeignKey(CouponModel, on_delete=models.PROTECT, null=True, blank=True)
