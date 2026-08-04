@@ -1,5 +1,6 @@
 from django import forms
 from shop.models import ProductImageModel, ProductModel
+from order.models import CouponModel
 
 
 class AdminProductForm(forms.ModelForm):
@@ -96,3 +97,55 @@ class AdminProductImageForm(forms.ModelForm):
                 }
             ),
         }
+
+
+class AdminCouponForm(forms.ModelForm):
+    expiration_date = forms.DateTimeField(
+        required=False,
+        input_formats=[
+            "%Y-%m-%dT%H:%M",
+        ],
+        widget=forms.DateTimeInput(
+            format="%Y-%m-%dT%H:%M",
+            attrs={
+                "class": "form-control",
+                "type": "datetime-local",
+            },
+        ),
+    )
+    class Meta:
+        model = CouponModel
+
+        fields = [
+            "code",
+            "discount_percent",
+            "max_limit_usage",
+            "expiration_date",
+        ]
+
+        widgets = {
+            "code": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "مثلاً SUMMER10",
+                }
+            ),
+            "discount_percent": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 0,
+                    "max": 100,
+                }
+            ),
+            "max_limit_usage": forms.NumberInput(
+                attrs={
+                    "class": "form-control",
+                    "min": 1,
+                }
+            ),
+        }
+
+    def clean_code(self):
+        code = self.cleaned_data["code"]
+
+        return code.strip().upper()

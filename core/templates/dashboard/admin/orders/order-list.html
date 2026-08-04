@@ -1,0 +1,244 @@
+{% extends "base.html" %}
+
+{% block title %}
+    مدیریت سفارش‌ها
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                مدیریت سفارش‌ها
+            </h1>
+
+            <p class="text-muted mb-0">
+                {{ total_items }} سفارش ثبت شده است.
+            </p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+
+                <div class="col-md-4">
+                    <input
+                        type="search"
+                        name="q"
+                        class="form-control"
+                        value="{{ request.GET.q }}"
+                        placeholder="شماره سفارش یا ایمیل مشتری"
+                    >
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="status"
+                        class="form-select"
+                    >
+                        <option value="">
+                            همه وضعیت‌ها
+                        </option>
+
+                        {% for status_id, status_label in status_types %}
+                            <option
+                                value="{{ status_id }}"
+                                {% if request.GET.status == status_id|stringformat:"s" %}
+                                    selected
+                                {% endif %}
+                            >
+                                {{ status_label }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="col-md-3">
+                    <select
+                        name="order_by"
+                        class="form-select"
+                    >
+                        <option value="">
+                            مرتب‌سازی پیش‌فرض
+                        </option>
+
+                        <option
+                            value="newest"
+                            {% if request.GET.order_by == "newest" %}
+                                selected
+                            {% endif %}
+                        >
+                            جدیدترین
+                        </option>
+
+                        <option
+                            value="oldest"
+                            {% if request.GET.order_by == "oldest" %}
+                                selected
+                            {% endif %}
+                        >
+                            قدیمی‌ترین
+                        </option>
+
+                        <option
+                            value="price_asc"
+                            {% if request.GET.order_by == "price_asc" %}
+                                selected
+                            {% endif %}
+                        >
+                            کمترین مبلغ
+                        </option>
+
+                        <option
+                            value="price_desc"
+                            {% if request.GET.order_by == "price_desc" %}
+                                selected
+                            {% endif %}
+                        >
+                            بیشترین مبلغ
+                        </option>
+                    </select>
+                </div>
+
+                <div class="col-md-2">
+                    <button
+                        type="submit"
+                        class="btn btn-outline-primary w-100"
+                    >
+                        جستجو
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>مشتری</th>
+                        <th>تاریخ ثبت</th>
+                        <th>مبلغ نهایی</th>
+                        <th>وضعیت</th>
+                        <th>کد رهگیری</th>
+                        <th class="text-end">عملیات</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for order in orders %}
+                        <tr>
+                            <td>
+                                #{{ order.id }}
+                            </td>
+
+                            <td>
+                                {{ order.user.email }}
+                            </td>
+
+                            <td>
+                                {{ order.created_date|date:"Y/m/d - H:i" }}
+                            </td>
+
+                            <td>
+                                {{ order.get_price }} تومان
+                            </td>
+
+                            <td>
+                                {% if order.is_successful %}
+                                    <span class="badge bg-success">
+                                        {{ order.get_status.label }}
+                                    </span>
+                                {% elif order.status == 1 %}
+                                    <span class="badge bg-warning text-dark">
+                                        {{ order.get_status.label }}
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger">
+                                        {{ order.get_status.label }}
+                                    </span>
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if order.payment and order.payment.ref_id %}
+                                    {{ order.payment.ref_id }}
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td class="text-end">
+                                <div class="d-flex justify-content-end gap-2">
+                                    <a
+                                        href="{% url 'dashboard:admin:order-detail' order.id %}"
+                                        class="btn btn-sm btn-outline-primary"
+                                    >
+                                        جزئیات
+                                    </a>
+
+                                    {% if order.is_successful %}
+                                        <a
+                                            href="{% url 'dashboard:admin:order-invoice' order.id %}"
+                                            target="_blank"
+                                            class="btn btn-sm btn-outline-success"
+                                        >
+                                            فاکتور
+                                        </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+
+                    {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                سفارشی پیدا نشد.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.previous_page_number }}&q={{ request.GET.q }}&status={{ request.GET.status }}&order_by={{ request.GET.order_by }}"
+                        >
+                            قبلی
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        {{ page_obj.number }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a
+                            class="page-link"
+                            href="?page={{ page_obj.next_page_number }}&q={{ request.GET.q }}&status={{ request.GET.status }}&order_by={{ request.GET.order_by }}"
+                        >
+                            بعدی
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% endif %}
+</div>
+{% endblock %}

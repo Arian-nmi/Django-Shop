@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}
+    فاکتور سفارش #{{ order.id }}
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+
+    <div class="card">
+        <div class="card-body p-4 p-md-5">
+
+            <div class="d-flex justify-content-between border-bottom pb-4 mb-4">
+                <div>
+                    <h1 class="h3">
+                        فاکتور سفارش
+                    </h1>
+
+                    <p class="mb-0">
+                        شماره سفارش: #{{ order.id }}
+                    </p>
+
+                    <p class="mb-0">
+                        تاریخ:
+                        {{ order.created_date|date:"Y/m/d - H:i" }}
+                    </p>
+                </div>
+
+                <div class="text-end">
+                    <span class="badge bg-success">
+                        پرداخت موفق
+                    </span>
+
+                    {% if order.payment.ref_id %}
+                        <p class="mt-2 mb-0">
+                            کد رهگیری:
+                            {{ order.payment.ref_id }}
+                        </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5>اطلاعات مشتری</h5>
+
+                    <p class="mb-1">
+                        {{ order.user.email }}
+                    </p>
+
+                    <p class="mb-0">
+                        {{ order.user.user_profile.get_fullname }}
+                    </p>
+                </div>
+
+                <div class="col-md-6">
+                    <h5>آدرس ارسال</h5>
+
+                    <p class="mb-0">
+                        {{ order.state }}،
+                        {{ order.city }}،
+                        {{ order.address }}
+                        <br>
+                        کد پستی: {{ order.zip_code }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>محصول</th>
+                            <th>قیمت واحد</th>
+                            <th>تعداد</th>
+                            <th class="text-end">جمع</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {% for item in order.order_items.all %}
+                            <tr>
+                                <td>
+                                    {{ item.product.title }}
+                                </td>
+
+                                <td>
+                                    {{ item.price }} تومان
+                                </td>
+
+                                <td>
+                                    {{ item.quantity }}
+                                </td>
+
+                                <td class="text-end">
+                                    {{ item.get_total_price }} تومان
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end">
+                                مبلغ نهایی
+                            </td>
+
+                            <td class="text-end">
+                                <strong>
+                                    {{ order.get_price }} تومان
+                                </strong>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            <div class="text-center mt-5">
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="window.print()"
+                >
+                    چاپ فاکتور
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
