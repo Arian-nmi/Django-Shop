@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views import View
 from django.views.generic import DetailView, ListView
 
+from review.models import ReviewModel, ReviewStatusType
 from .models import (
     ProductCategoryModel,
     ProductModel,
@@ -119,6 +120,15 @@ class ShopProductDetailView(DetailView):
                 product=product,
             ).exists()
 
+        accepted_reviews = (
+            ReviewModel.objects
+            .filter(product=product, status=ReviewStatusType.accepted.value)
+            .select_related("user")
+        )
+
+        context["reviews"] = accepted_reviews
+        context["reviews_count"] = accepted_reviews.count()
+        
         return context
 
 

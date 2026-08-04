@@ -1,6 +1,7 @@
 from django import forms
 from shop.models import ProductImageModel, ProductModel
 from order.models import CouponModel
+from review.models import ReviewModel
 
 
 class AdminProductForm(forms.ModelForm):
@@ -149,3 +150,40 @@ class AdminCouponForm(forms.ModelForm):
         code = self.cleaned_data["code"]
 
         return code.strip().upper()
+
+
+class AdminReviewForm(forms.ModelForm):
+    class Meta:
+        model = ReviewModel
+
+        fields = [
+            "description",
+            "rate",
+            "status",
+        ]
+
+        widgets = {
+            "description": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 5,
+                }
+            ),
+            "rate": forms.Select(
+                choices=[
+                    (1, "1 ستاره"),
+                    (2, "2 ستاره"),
+                    (3, "3 ستاره"),
+                    (4, "4 ستاره"),
+                    (5, "5 ستاره"),
+                ],
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+            "status": forms.Select(
+                attrs={
+                    "class": "form-select",
+                }
+            ),
+        }
