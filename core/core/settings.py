@@ -28,6 +28,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    # Applications:
     'website.apps.WebsiteConfig',
     'accounts.apps.AccountsConfig',
     'shop.apps.ShopConfig',
@@ -36,6 +37,8 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'dashboard.apps.DashboardConfig',
     'review.apps.ReviewConfig',
+    # Third-party applications:
+    'django_celery_results',
 ]
 
 MIDDLEWARE = [
@@ -95,4 +98,27 @@ AUTH_PASSWORD_VALIDATORS = [
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 
+# ZarinPal Payment:
 ZARINPAL_MERCHANT_ID = config("ZARINPAL_MERCHANT_ID", default="")
+
+# Celery / Redis
+CELERY_BROKER_URL = config(
+    "CELERY_BROKER_URL",
+    default="redis://redis:6379/0",
+)
+
+CELERY_RESULT_BACKEND = "django-db"
+
+CELERY_ACCEPT_CONTENT = ["json"]
+CELERY_TASK_SERIALIZER = "json"
+CELERY_RESULT_SERIALIZER = "json"
+
+CELERY_TIMEZONE = TIME_ZONE
+
+
+# Email
+EMAIL_BACKEND = config("EMAIL_BACKEND", default="django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = config("EMAIL_HOST", default="smtp4dev")
+EMAIL_PORT = config("EMAIL_PORT", cast=int, default=25)
+EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool, default=False)
+DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL", default="noreply@django-shop.local")

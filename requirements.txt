@@ -5,3 +5,8 @@ psycopg
 psycopg-binary
 faker
 requests
+djangorestframework
+faker
+celery[redis]
+redis
+django-celery-results

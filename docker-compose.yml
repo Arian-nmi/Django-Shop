@@ -30,6 +30,24 @@ services:
     restart: always
     depends_on:
       - db
+      - redis
+      
+  celery-worker:
+    container_name: celery-worker
+    build:
+      context: .
+      dockerfile: ./Dockerfiles/dev/Dockerfile
+    volumes:
+      - ./core:/usr/src/app
+    working_dir: /usr/src/app
+    command: celery -A core worker -l INFO
+    env_file:
+      - ./envs/dev/.env
+    restart: always
+    depends_on:
+      - db
+      - redis
+      - smtp4dev
 
   smtp4dev:
     image: rnwood/smtp4dev:v3
@@ -42,6 +60,17 @@ services:
     environment:
       - ServerOptions__HostName=smtp4dev
 
+  redis:
+    container_name: redis
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    expose:
+      - 6379
+    restart: always
+
 volumes:
   smtp4dev-data:
   postgres_data:
+  redis_data:

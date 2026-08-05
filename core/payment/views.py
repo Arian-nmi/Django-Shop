@@ -3,11 +3,12 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
 from django.views.generic import View
 
-from cart.cart import CartSession
 from cart.models import CartModel
 from order.models import OrderModel, OrderStatusType
-
 from .models import PaymentModel, PaymentStatusType
+
+from order.tasks import send_order_confirmation_email
+from cart.cart import CartSession
 from .zarinpal_client import ZarinPalSandbox
 
 
@@ -115,7 +116,8 @@ class PaymentVerifyView(View):
 
         if is_successful:
             CartSession(request.session).clear()
-
+            transaction.on_commit(lambda: send_order_confirmation_email.delay(order.id))
+            
         return redirect(
             reverse_lazy("order:completed")
             if is_successful
