@@ -1,5 +1,6 @@
 from pathlib import Path
 from decouple import config
+from datetime import timedelta
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -37,8 +38,10 @@ INSTALLED_APPS = [
     'payment.apps.PaymentConfig',
     'dashboard.apps.DashboardConfig',
     'review.apps.ReviewConfig',
+    "api.apps.ApiConfig",
     # Third-party applications:
     'django_celery_results',
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -77,6 +80,28 @@ DATABASES = {
         'HOST': config("DB_HOST", default='db'),
         'PORT': config("DB_PORT", cast=int, default=5432),
     }
+}
+
+# REST Framework:
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ],
+    "DEFAULT_PERMISSION_CLASSES": [
+        "rest_framework.permissions.AllowAny",
+    ],
+    "DEFAULT_PAGINATION_CLASS": (
+        "api.pagination.StandardResultsSetPagination"
+    ),
+    "PAGE_SIZE": 12,
+}
+
+# Simple JWT:
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": False,
 }
 
 # Password validation
