@@ -7,7 +7,6 @@ faker
 requests
 djangorestframework>=3.17,<3.18
 djangorestframework-simplejwt>=5.5,<6
-faker
 celery[redis]
 redis
 django-celery-results
