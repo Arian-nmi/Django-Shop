@@ -1,12 +1,12 @@
-Django
+Django>=6.0,<6.1
 pillow
 python-decouple
 psycopg
 psycopg-binary
 faker
 requests
-djangorestframework
-faker
+djangorestframework>=3.17,<3.18
+djangorestframework-simplejwt>=5.5,<6
 celery[redis]
 redis
 django-celery-results
