@@ -29,6 +29,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
     # Applications:
     'website.apps.WebsiteConfig',
     'accounts.apps.AccountsConfig',
@@ -39,6 +40,7 @@ INSTALLED_APPS = [
     'dashboard.apps.DashboardConfig',
     'review.apps.ReviewConfig',
     "api.apps.ApiConfig",
+
     # Third-party applications:
     'django_celery_results',
     "rest_framework",
@@ -102,6 +104,21 @@ SIMPLE_JWT = {
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": False,
     "BLACKLIST_AFTER_ROTATION": False,
+}
+
+# Cache:
+CACHES = {
+    "default": {
+        "BACKEND": (
+            "django.core.cache.backends.redis.RedisCache"
+        ),
+        "LOCATION": config(
+            "REDIS_CACHE_URL",
+            default="redis://redis:6379/1",
+        ),
+        "KEY_PREFIX": "django_shop",
+        "TIMEOUT": 60 * 5,
+    }
 }
 
 # Password validation
