@@ -1,5 +1,7 @@
 from decimal import Decimal, InvalidOperation
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
+from django.views.decorators.cache import cache_page
 
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import AllowAny
@@ -14,13 +16,14 @@ from .serializers import (
     WishlistProductSerializer, AddWishlistProductSerializer
     )
 
-
+@method_decorator(cache_page(60 * 5), name="dispatch",)
 class CategoryListAPIView(ListAPIView):
     serializer_class = ProductCategorySerializer
     permission_classes = [AllowAny]
     queryset = ProductCategoryModel.objects.all()
 
 
+@method_decorator(cache_page(60 * 5), name="dispatch",)
 class ProductListAPIView(ListAPIView):
     serializer_class = ProductListSerializer
     permission_classes = [AllowAny]
@@ -73,6 +76,7 @@ class ProductListAPIView(ListAPIView):
         return queryset.distinct()
 
 
+@method_decorator(cache_page(60 * 5), name="dispatch",)
 class ProductDetailAPIView(RetrieveAPIView):
     serializer_class = ProductDetailSerializer
     permission_classes = [AllowAny]
