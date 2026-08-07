@@ -4,8 +4,6 @@
 ![Django](https://img.shields.io/badge/Django-5.x-success)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
-![CI](https://github.com/Arian-nmi/Django-Shop/actions/workflows/ci.yml/badge.svg)
-
 [![Django CI](https://github.com/Arian-nmi/Django-Shop/actions/workflows/django-ci.yml/badge.svg)](https://github.com/Arian-nmi/Django-Shop/actions/workflows/django-ci.yml)
 
 A full-featured e-commerce project built with Django.
