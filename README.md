@@ -1,5 +1,11 @@
 # Django Shop
 
+![Python](https://img.shields.io/badge/Python-3.12-blue)
+![Django](https://img.shields.io/badge/Django-5.x-success)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-blue)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED)
+![CI](https://github.com/Arian-nmi/Django-Shop/actions/workflows/ci.yml/badge.svg)
+
 [![Django CI](https://github.com/Arian-nmi/Django-Shop/actions/workflows/django-ci.yml/badge.svg)](https://github.com/Arian-nmi/Django-Shop/actions/workflows/django-ci.yml)
 
 A full-featured e-commerce project built with Django.
@@ -139,11 +145,11 @@ core/
 1. Clone the repo and copy `envs/dev/.env.sample` to `envs/dev/.env`
 2. Fill in the required environment variables (see the sample file)
 3. Run:
-   \`\`\`bash
+   ```bash
    docker-compose up --build
    docker-compose exec backend python manage.py migrate
    docker-compose exec backend python manage.py createsuperuser
-   \`\`\`
+   ```
 4. Visit `http://localhost:8000`
 
 ---
