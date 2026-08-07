@@ -40,10 +40,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-    defaults:
-      run:
-        working-directory: core
-
     env:
       DEBUG: "True"
       SECRET_KEY: "ci-secret-key-not-for-production"
@@ -79,10 +75,13 @@ jobs:
           pip install -r requirements.txt
 
       - name: Run Django system checks
+        working-directory: core
         run: python manage.py check
 
       - name: Check missing migrations
+        working-directory: core
         run: python manage.py makemigrations --check --dry-run
 
       - name: Run tests
+        working-directory: core
         run: python manage.py test
