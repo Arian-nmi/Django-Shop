@@ -130,6 +130,7 @@ core/
 ├── dashboard/       # Customer and admin dashboards
 ├── api/             # API root, JWT routes, shared pagination
 └── core/            # Settings, URLs, Celery configuration
+```
 
 ---
 
