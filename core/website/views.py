@@ -30,7 +30,6 @@ class SendContactView(CreateView):
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        # handle unsuccessful form submission
         messages.error(self.request, 'مشکلی در ارسال فرم شما پیش آمد لطفا ورودی ها رو بررسی کنین و مجدد ارسال نمایید')
         return redirect(self.request.META.get('HTTP_REFERER'))
 
@@ -44,11 +43,9 @@ class NewsletterView(CreateView):
     success_url = '/'
 
     def form_valid(self, form):
-        # handle successful form submission
         messages.success(self.request, 'از ثبت نام شما ممنونم، اخبار جدید رو براتون ارسال می کنم 😊👍')
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        # handle unsuccessful form submission
         messages.error(self.request, 'مشکلی در ارسال فرم شما وجود داشت که می دونم برا چی بود!! چون ربات هستید!')
         return redirect('website:index')

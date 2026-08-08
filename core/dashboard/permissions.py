@@ -4,18 +4,9 @@ from accounts.models import UserType
 
 class CustomerDashboardRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return (
-            self.request.user.is_authenticated
-            and self.request.user.type == UserType.customer.value
-        )
+        return self.request.user.is_authenticated and self.request.user.type == UserType.customer.value
 
 
 class StaffDashboardRequiredMixin(UserPassesTestMixin):
     def test_func(self):
-        return (
-            self.request.user.is_authenticated
-            and (
-                self.request.user.is_staff
-                or self.request.user.is_superuser
-            )
-        )
+        return self.request.user.is_authenticated and (self.request.user.is_staff or self.request.user.is_superuser)
