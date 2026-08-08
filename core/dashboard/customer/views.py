@@ -5,14 +5,7 @@ from django.urls import reverse_lazy
 from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
-from django.views.generic import (
-    CreateView,
-    DeleteView,
-    ListView,
-    TemplateView,
-    UpdateView,
-    DetailView,
-)
+from django.views.generic import CreateView, DeleteView, ListView, TemplateView, UpdateView, DetailView
 
 from order.models import UserAddressModel, OrderModel, OrderStatusType
 from shop.models import WishlistProductModel
@@ -21,19 +14,11 @@ from dashboard.permissions import CustomerDashboardRequiredMixin
 from .forms import UserAddressForm, CustomerProfileForm, CustomerPasswordChangeForm
 
 
-class CustomerDashboardHomeView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    TemplateView,
-):
+class CustomerDashboardHomeView(LoginRequiredMixin, CustomerDashboardRequiredMixin, TemplateView):
     template_name = "dashboard/customer/home.html"
 
 
-class CustomerAddressListView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    ListView,
-):
+class CustomerAddressListView(LoginRequiredMixin, CustomerDashboardRequiredMixin, ListView):
     template_name = "dashboard/customer/addresses/address-list.html"
     context_object_name = "addresses"
 
@@ -41,12 +26,7 @@ class CustomerAddressListView(
         return UserAddressModel.objects.filter(user=self.request.user).order_by("-created_date")
 
 
-class CustomerAddressCreateView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    CreateView,
-):
+class CustomerAddressCreateView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, CreateView):
     template_name = "dashboard/customer/addresses/address-create.html"
     form_class = UserAddressForm
     success_message = "آدرس جدید با موفقیت ثبت شد."
@@ -59,12 +39,7 @@ class CustomerAddressCreateView(
         return reverse_lazy("dashboard:customer:address-list")
 
 
-class CustomerAddressUpdateView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    UpdateView,
-):
+class CustomerAddressUpdateView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, UpdateView):
     template_name = "dashboard/customer/addresses/address-edit.html"
     form_class = UserAddressForm
     success_message = "آدرس با موفقیت ویرایش شد."
@@ -76,12 +51,7 @@ class CustomerAddressUpdateView(
         return reverse_lazy("dashboard:customer:address-list")
 
 
-class CustomerAddressDeleteView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    DeleteView,
-):
+class CustomerAddressDeleteView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, DeleteView):
     template_name = "dashboard/customer/addresses/address-delete.html"
     success_message = "آدرس با موفقیت حذف شد."
 
@@ -92,11 +62,7 @@ class CustomerAddressDeleteView(
         return reverse_lazy("dashboard:customer:address-list")
 
 
-class CustomerOrderListView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    ListView,
-):
+class CustomerOrderListView(LoginRequiredMixin, CustomerDashboardRequiredMixin, ListView):
     template_name = "dashboard/customer/orders/order-list.html"
     context_object_name = "orders"
     paginate_by = 10
@@ -146,11 +112,7 @@ class CustomerOrderListView(
         return context
 
 
-class CustomerOrderDetailView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    DetailView,
-):
+class CustomerOrderDetailView(LoginRequiredMixin, CustomerDashboardRequiredMixin, DetailView):
     template_name = "dashboard/customer/orders/order-detail.html"
     context_object_name = "order"
 
@@ -163,11 +125,7 @@ class CustomerOrderDetailView(
         )
 
 
-class CustomerOrderInvoiceView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    DetailView,
-):
+class CustomerOrderInvoiceView(LoginRequiredMixin, CustomerDashboardRequiredMixin, DetailView):
     template_name = "dashboard/customer/orders/order-invoice.html"
     context_object_name = "order"
 
@@ -182,11 +140,7 @@ class CustomerOrderInvoiceView(
         )
 
 
-class CustomerWishlistListView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    ListView,
-):
+class CustomerWishlistListView(LoginRequiredMixin, CustomerDashboardRequiredMixin, ListView):
     template_name = "dashboard/customer/wishlists/wishlist-list.html"
     context_object_name = "wishlist_items"
     paginate_by = 12
@@ -224,11 +178,7 @@ class CustomerWishlistListView(
         return context
 
 
-class CustomerWishlistDeleteView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    View,
-):
+class CustomerWishlistDeleteView(LoginRequiredMixin, CustomerDashboardRequiredMixin, View):
     http_method_names = ["post"]
 
     def post(self, request, *args, **kwargs):
@@ -244,12 +194,7 @@ class CustomerWishlistDeleteView(
         return redirect("dashboard:customer:wishlist-list")
 
 
-class CustomerProfileEditView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    UpdateView,
-):
+class CustomerProfileEditView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, UpdateView):
     template_name = "dashboard/customer/profile/profile-edit.html"
     form_class = CustomerProfileForm
     success_message = "اطلاعات پروفایل با موفقیت بروزرسانی شد."
@@ -261,12 +206,7 @@ class CustomerProfileEditView(
         return reverse_lazy("dashboard:customer:profile-edit")
 
 
-class CustomerProfileImageEditView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    UpdateView,
-):
+class CustomerProfileImageEditView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, UpdateView):
     http_method_names = ["post"]
     model = Profile
     fields = ["image"]
@@ -279,12 +219,7 @@ class CustomerProfileImageEditView(
         return reverse_lazy("dashboard:customer:profile-edit")
 
 
-class CustomerSecurityEditView(
-    LoginRequiredMixin,
-    CustomerDashboardRequiredMixin,
-    SuccessMessageMixin,
-    auth_views.PasswordChangeView,
-):
+class CustomerSecurityEditView(LoginRequiredMixin, CustomerDashboardRequiredMixin, SuccessMessageMixin, auth_views.PasswordChangeView):
     template_name = "dashboard/customer/profile/security-edit.html"
     form_class = CustomerPasswordChangeForm
     success_message = "رمز عبور با موفقیت تغییر کرد."

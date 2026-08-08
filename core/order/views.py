@@ -14,20 +14,11 @@ from payment.models import PaymentModel
 from payment.zarinpal_client import ZarinPalSandbox
 
 from .forms import CheckOutForm
-from .models import (
-    CouponModel,
-    OrderItemModel,
-    OrderModel,
-    OrderStatusType,
-)
+from .models import CouponModel, OrderItemModel, OrderModel, OrderStatusType
 from .permissions import HasCustomerAccessPermission
 
 
-class OrderCheckOutView(
-    LoginRequiredMixin,
-    HasCustomerAccessPermission,
-    FormView,
-):
+class OrderCheckOutView(LoginRequiredMixin, HasCustomerAccessPermission, FormView):
     form_class = CheckOutForm
     template_name = "order/checkout.html"
 
@@ -56,15 +47,10 @@ class OrderCheckOutView(
 
         cart, _ = CartModel.objects.get_or_create(user=user)
 
-        cart_items = list(
-            cart.items.select_related("product")
-        )
+        cart_items = list(cart.items.select_related("product"))
 
         if not cart_items:
-            form.add_error(
-                None,
-                "سبد خرید شما خالی است.",
-            )
+            form.add_error(None, "سبد خرید شما خالی است.")
             return self.form_invalid(form)
 
         try:
@@ -88,10 +74,7 @@ class OrderCheckOutView(
             payment_url = self.create_payment_url(order)
 
         except ValueError as error:
-            messages.error(
-                self.request,
-                str(error),
-            )
+            messages.error(self.request, str(error))
             return self.form_invalid(form)
 
         except Exception:
@@ -122,14 +105,10 @@ class OrderCheckOutView(
             product = cart_item.product
 
             if not product.is_published():
-                raise ValueError(
-                    f"محصول «{product.title}» دیگر قابل خرید نیست."
-                )
+                raise ValueError(f"محصول «{product.title}» دیگر قابل خرید نیست.")
 
             if cart_item.quantity > product.stock:
-                raise ValueError(
-                    f"موجودی محصول «{product.title}» کافی نیست."
-                )
+                raise ValueError(f"موجودی محصول «{product.title}» کافی نیست.")
 
             order_items.append(
                 OrderItemModel(
@@ -147,33 +126,17 @@ class OrderCheckOutView(
         discount_amount = Decimal("0")
 
         if coupon:
-            discount_amount = (
-                subtotal
-                * Decimal(coupon.discount_percent)
-                / Decimal("100")
-            )
+            discount_amount = (subtotal * Decimal(coupon.discount_percent) / Decimal("100"))
 
-        final_price = (
-            subtotal - discount_amount
-        ).quantize(
-            Decimal("1"),
-            rounding=ROUND_HALF_UP,
-        )
+        final_price = (subtotal - discount_amount).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
 
         order.total_price = final_price
-        order.save(
-            update_fields=[
-                "total_price",
-                "updated_date",
-            ]
-        )
+        order.save(update_fields=["total_price", "updated_date"])
 
     def create_payment_url(self, order):
         zarinpal = ZarinPalSandbox()
 
-        callback_url = self.request.build_absolute_uri(
-            reverse("payment:verify")
-        )
+        callback_url = self.request.build_absolute_uri(reverse("payment:verify"))
 
         response = zarinpal.payment_request(
             amount_toman=order.total_price,
@@ -186,16 +149,9 @@ class OrderCheckOutView(
 
         if response_code != 100:
             order.status = OrderStatusType.failed.value
-            order.save(
-                update_fields=[
-                    "status",
-                    "updated_date",
-                ]
-            )
+            order.save(update_fields=["status", "updated_date"])
 
-            raise ValueError(
-                "درخواست پرداخت توسط زرین‌پال پذیرفته نشد."
-            )
+            raise ValueError("درخواست پرداخت توسط زرین‌پال پذیرفته نشد.")
 
         authority = data["authority"]
 
@@ -207,12 +163,7 @@ class OrderCheckOutView(
         )
 
         order.payment = payment
-        order.save(
-            update_fields=[
-                "payment",
-                "updated_date",
-            ]
-        )
+        order.save(update_fields=["payment", "updated_date"])
 
         return zarinpal.generate_payment_url(authority)
 
@@ -244,22 +195,14 @@ class ValidateCouponView(LoginRequiredMixin, HasCustomerAccessPermission, View):
             else:
                 cart, _ = CartModel.objects.get_or_create(user=self.request.user)
                 if not cart.items.exists():
-                    return JsonResponse(
-                        {
-                            "message": "سبد خرید شما خالی است.",
-                        },
-                        status=400,
-                    )
+                    return JsonResponse({"message": "سبد خرید شما خالی است."}, status=400)
 
                 total_price = cart.calculate_total_price()
-                discount_amount = (
-                    total_price * Decimal(coupon.discount_percent) / Decimal("100")
-                )
+                discount_amount = (total_price * Decimal(coupon.discount_percent) / Decimal("100"))
 
-                total_price = (
-                    total_price - discount_amount).quantize(Decimal("1"), rounding=ROUND_HALF_UP
-                )
+                total_price = ( total_price - discount_amount).quantize(Decimal("1"), rounding=ROUND_HALF_UP)
                 total_tax = round((total_price * 9)/100)
+                
         return JsonResponse(
                 {
                     "message": message, 
