@@ -5,6 +5,7 @@ from django.views.generic import View
 
 from cart.models import CartModel
 from order.models import OrderModel, OrderStatusType
+from shop.models import ProductModel
 from .models import PaymentModel, PaymentStatusType
 
 from order.tasks import send_order_confirmation_email
@@ -68,56 +69,76 @@ class PaymentVerifyView(View):
         ref_id = data.get("ref_id")
 
         is_successful = status_code in {100, 101}
+        was_already_processed = False
 
         with transaction.atomic():
-            payment_obj.ref_id = ref_id
-            payment_obj.response_code = status_code
-            payment_obj.response_json = response
+            payment_obj = PaymentModel.objects.select_for_update().get(pk=payment_obj.pk)
+            order = OrderModel.objects.select_for_update().get(pk=order.pk)
 
-            payment_obj.status = (
-                PaymentStatusType.success.value
-                if is_successful
-                else PaymentStatusType.failed.value
-            )
-
-            payment_obj.save(
-                update_fields=[
-                    "ref_id",
-                    "response_code",
-                    "response_json",
-                    "status",
-                    "updated_date",
-                ]
-            )
-
-            order.status = (
-                OrderStatusType.success.value
-                if is_successful
-                else OrderStatusType.failed.value
-            )
-
-            if is_successful:
-                for order_item in order.order_items.select_related("product"):
-                    product = order_item.product
-
-                    product.stock -= order_item.quantity
-
-                    product.save(update_fields=["stock", "updated_date"])
-
-                if order.coupon:
-                    order.coupon.used_by.add(order.user)
-
-                cart = CartModel.objects.filter(user=order.user).first()
-
-                if cart:
-                    cart.items.all().delete()
-
-            order.save(update_fields=["status", "updated_date"])
-
-        if is_successful:
-            CartSession(request.session).clear()
-            transaction.on_commit(lambda: send_order_confirmation_email.delay(order.id))
+            was_already_processed = is_successful and order.status == OrderStatusType.success.value
             
+            if not was_already_processed:
+                payment_obj.ref_id = ref_id
+                payment_obj.response_code = status_code
+                payment_obj.response_json = response
+
+                payment_obj.status = (
+                    PaymentStatusType.success.value
+                    if is_successful
+                    else PaymentStatusType.failed.value
+                )
+
+                payment_obj.save(
+                    update_fields=[
+                        "ref_id",
+                        "response_code",
+                        "response_json",
+                        "status",
+                        "updated_date",
+                    ]
+                )
+
+                order.status = (
+                    OrderStatusType.success.value
+                    if is_successful
+                    else OrderStatusType.failed.value
+                )
+
+                if is_successful:
+                    order_items = list(order.order_items.all())
+
+                    product_ids = sorted({item.product_id for item in order_items})
+
+                    locked_products = {
+                        product.pk: product
+                        for product in (
+                            ProductModel.objects
+                            .select_for_update()
+                            .filter(pk__in=product_ids)
+                            .order_by("pk")
+                        )
+                    }
+
+                    for order_item in order_items:
+                        product = locked_products[order_item.product_id]
+                        product.stock -= order_item.quantity
+                        product.save(update_fields=["stock", "updated_date"])
+
+                    if order.coupon:
+                        order.coupon.used_by.add(order.user)
+
+                    cart = CartModel.objects.filter(user=order.user).first()
+                    
+                    if cart:
+                        cart.items.all().delete()
+
+                order.save(update_fields=["status", "updated_date"])
+
+        if is_successful and not was_already_processed:
+            CartSession(request.session).clear()
+
+            transaction.on_commit(lambda order_id=order.id: send_order_confirmation_email.delay(order_id))
+
         return redirect(
             reverse_lazy("order:completed")
             if is_successful
